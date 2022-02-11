@@ -3,10 +3,8 @@ import * as restify from "restify";
 
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-import { BotFrameworkAdapter, MessageFactory, TeamsInfo, TurnContext } from "botbuilder";
+import { BotFrameworkAdapter, MessageFactory, TeamsActivityHandler, TeamsInfo, TurnContext } from "botbuilder";
 
-// This bot's main dialog.
-import { TeamsBot } from "./teamsBot";
 import { TeamsFxMiddleware } from "./teamsfxBotSDK/middleware";
 import { TeamsFxBot } from "./teamsfxBotSDK/bot";
 
@@ -41,19 +39,17 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
 const teamsfxBot = new TeamsFxBot(adapter);
 adapter.use(new TeamsFxMiddleware(process.env.BOT_ID, teamsfxBot));
 
-// Create the bot that will handle incoming messages.
-const bot = new TeamsBot();
-
 // Create HTTP server.
 const server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, () => {
   console.log(`\nBot Started, ${server.name} listening to ${server.url}`);
 });
 
-// Listen for incoming bot request
+// Connect the bot app.
+const handler = new TeamsActivityHandler();
 server.post("/api/messages", async (req, res) => {
   await adapter.processActivity(req, res, async (context) => {
-    await bot.run(context);
+    await handler.run(context);
   });
 });
 
