@@ -5,8 +5,8 @@ import * as restify from "restify";
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
 import { BotFrameworkAdapter, MessageFactory, TeamsActivityHandler, TeamsInfo, TurnContext } from "botbuilder";
 
-import { TeamsFxMiddleware } from "./teamsfxBotSDK/middleware";
-import { TeamsFxBot } from "./teamsfxBotSDK/bot";
+import { TeamsFxMiddleware } from "./sdk/middleware";
+import { TeamsFxBot } from "./sdk/bot";
 
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
