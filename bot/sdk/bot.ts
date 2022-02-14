@@ -19,6 +19,10 @@ export class TeamsFxBot {
             });
     }
 
+    public async notify(context: TurnContext, activity: Partial<ConversationReference>): Promise<void> {
+        await context.sendActivity(activity);
+    }
+
     public async notifyMember(context: TurnContext, member: TeamsChannelAccount, activity: Partial<ConversationReference>): Promise<void> {
         const reference = TurnContext.getConversationReference(context.activity);
         const personalConversation = this.cloneConversation(reference);

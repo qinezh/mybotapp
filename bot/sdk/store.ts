@@ -33,7 +33,7 @@ export class ConversationReferenceFileStore implements ConversationReferenceStor
         }
 
         this.references.add(reference);
-        const content = JSON.stringify(Array.from(this.references));
+        const content = JSON.stringify(Array.from(this.references), null, 4);
         fs.writeFileSync(this.filePath, content, { encoding: "utf-8" });
 
         return Promise.resolve();
@@ -42,6 +42,7 @@ export class ConversationReferenceFileStore implements ConversationReferenceStor
     update(reference: Partial<ConversationReference>): Promise<void> {
         throw new Error("Method not implemented.");
     }
+
     delete(reference: Partial<ConversationReference>): Promise<void> {
         throw new Error("Method not implemented.");
     }

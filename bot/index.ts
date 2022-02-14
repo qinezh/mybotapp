@@ -54,6 +54,15 @@ server.post("/api/messages", async (req, res) => {
 });
 
 // HTTP trigger for the notification.
+// Case 0: send notification to the default place (Teams/Group Chat/Personal Chat) where the bot is installed..
+server.post("/api/notify/default", async (req, res) => {
+  await teamsfxBot.listSubscribers(async ctx => {
+    await teamsfxBot.notify(ctx, MessageFactory.text(`Hello world!`));
+  });
+
+  res.json({});
+});
+
 // Case 1: send notification to all the members of the subscribed team/group chat.
 server.post("/api/notify/members", async (req, res) => {
   await teamsfxBot.listSubscribers(async ctx => {
@@ -72,7 +81,7 @@ server.post("/api/notify/channels", async (req, res) => {
     const channels = await TeamsInfo.getTeamChannels(ctx, ctx.activity.conversation.id);
     for (const channel of channels) {
       switch (channel.name) {
-        case "Notification":
+        case "Test":
           await teamsfxBot.notifyChannel(ctx, channel, MessageFactory.text(`Hello world!`));
           break;
         default:
