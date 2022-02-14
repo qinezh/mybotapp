@@ -2,7 +2,7 @@ import { ConversationReference } from "botbuilder";
 import * as fs from "fs";
 
 export interface ConversationReferenceStore {
-    getAll(): Promise<Set<Partial<ConversationReference>>>;
+    list(): Promise<Set<Partial<ConversationReference>>>;
     add(reference: Partial<ConversationReference>): Promise<void>;
     update(reference: Partial<ConversationReference>): Promise<void>;
     delete(reference: Partial<ConversationReference>): Promise<void>;
@@ -16,7 +16,7 @@ export class ConversationReferenceFileStore implements ConversationReferenceStor
         this.filePath = filePath ?? "./conversationReferences.json";
     }
 
-    getAll(): Promise<Set<Partial<ConversationReference>>> {
+    list(): Promise<Set<Partial<ConversationReference>>> {
         if (this.references === undefined) {
             if (fs.existsSync(this.filePath)) {
                 const data = fs.readFileSync(this.filePath, { encoding: "utf-8" });

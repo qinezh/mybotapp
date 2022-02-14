@@ -45,7 +45,7 @@ server.listen(process.env.port || process.env.PORT || 3978, () => {
   console.log(`\nBot Started, ${server.name} listening to ${server.url}`);
 });
 
-// Connect the bot app.
+// Process Teams activity with Bot Framework.
 const handler = new TeamsActivityHandler();
 server.post("/api/messages", async (req, res) => {
   await adapter.processActivity(req, res, async (context) => {
@@ -54,11 +54,30 @@ server.post("/api/messages", async (req, res) => {
 });
 
 // HTTP trigger for the notification.
-server.post("/api/notification", async (req, res) => {
+// Case 1: send notification to all the members of the subscribed team/group chat.
+server.post("/api/notify/members", async (req, res) => {
   await teamsfxBot.listSubscribers(async ctx => {
     const members = await TeamsInfo.getMembers(ctx);
     for (const member of members) {
-      await teamsfxBot.notifyMember(ctx, member, MessageFactory.text("Hello world"));
+      await teamsfxBot.notifyMember(ctx, member, MessageFactory.text(`Hello ${member.name}!`));
+    }
+  });
+
+  res.json({});
+});
+
+// Case 2: send notification to particular channel of the subscribed team.
+server.post("/api/notify/channels", async (req, res) => {
+  await teamsfxBot.listSubscribers(async ctx => {
+    const channels = await TeamsInfo.getTeamChannels(ctx, ctx.activity.conversation.id);
+    for (const channel of channels) {
+      switch (channel.name) {
+        case "Notification":
+          await teamsfxBot.notifyChannel(ctx, channel, MessageFactory.text(`Hello world!`));
+          break;
+        default:
+        // pass
+      }
     }
   });
 

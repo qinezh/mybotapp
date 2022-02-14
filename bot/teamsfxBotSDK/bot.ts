@@ -1,4 +1,4 @@
-import { Activity, BotFrameworkAdapter, ChannelInfo, ConversationReference, MessageFactory, TeamsChannelAccount, TeamsInfo, TurnContext } from "botbuilder";
+import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
 import { ConversationReferenceFileStore, ConversationReferenceStore } from "./store";
 
@@ -12,7 +12,7 @@ export class TeamsFxBot {
     }
 
     public async listSubscribers(action: (subscriberContext: TurnContext) => Promise<void>): Promise<void> {
-        const references = await this.store.getAll();
+        const references = await this.store.list();
         for (const reference of references)
             await this.adapter.continueConversation(reference, async (context: TurnContext) => {
                 await action(context);
@@ -39,8 +39,14 @@ export class TeamsFxBot {
         });
     }
 
-    public async notifyChannel(context: TurnContext, activity: Partial<ConversationReference>): Promise<void> {
-        throw new Error("Method not implemented.");
+    public async notifyChannel(context: TurnContext, channel: ChannelInfo, activity: Partial<ConversationReference>): Promise<void> {
+        const reference = TurnContext.getConversationReference(context.activity);
+        const channelConversation = this.cloneConversation(reference);
+        channelConversation.conversation.id = channel.id;
+
+        await this.adapter.continueConversation(channelConversation, async (context: TurnContext) => {
+            await context.sendActivity(activity);
+        });
     }
 
     private cloneConversation(conversation: Partial<ConversationReference>): ConversationReference {

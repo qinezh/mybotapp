@@ -1,1 +1,6 @@
-POST http://localhost:3978/api/notification
+### send to members
+POST http://localhost:3978/api/notify/members
+
+### send to channels
+POST http://localhost:3978/api/notify/channels
+
