@@ -3,7 +3,7 @@ import * as restify from "restify";
 
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-import { BotFrameworkAdapter, MessageFactory, TeamsActivityHandler, TeamsInfo, TurnContext } from "botbuilder";
+import { BotFrameworkAdapter, MessageFactory, TeamsActivityHandler, TurnContext } from "botbuilder";
 import { BlobsStorage } from "botbuilder-azure-blobs";
 
 import { TeamsFxMiddleware } from "./sdk/middleware";
@@ -69,8 +69,7 @@ server.post("/api/notify/default", async (req, res) => {
 // Case 1: send notification to all the members of the subscribed team/group chat.
 server.post("/api/notify/members", async (req, res) => {
   await teamsfxBot.listSubscribers(async ctx => {
-    const members = await TeamsInfo.getMembers(ctx);
-    for (const member of members) {
+    for (const member of await ctx.members) {
       await teamsfxBot.notifyMember(ctx, member, MessageFactory.text(`Hello ${member.name}!`));
     }
   });
@@ -81,8 +80,7 @@ server.post("/api/notify/members", async (req, res) => {
 // Case 2: send notification to particular channel of the subscribed team.
 server.post("/api/notify/channels", async (req, res) => {
   await teamsfxBot.listSubscribers(async ctx => {
-    const channels = await TeamsInfo.getTeamChannels(ctx, ctx.activity.conversation.id);
-    for (const channel of channels) {
+    for (const channel of await ctx.channels) {
       switch (channel.name) {
         case "Test":
           await teamsfxBot.notifyChannel(ctx, channel, MessageFactory.text(`Hello world!`));

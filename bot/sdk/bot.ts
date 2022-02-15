@@ -1,4 +1,4 @@
-import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext, Storage } from "botbuilder";
+import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext, Storage, TeamsInfo } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
 import { FileStorage } from "./fileStorage";
 import { ConversationReferenceStore } from "./store";
@@ -20,27 +20,27 @@ export class TeamsFxBot {
         this.store = new ConversationReferenceStore(storage, this.key);
     }
 
-    public async listSubscribers(action: (subscriberContext: TurnContext) => Promise<void>): Promise<void> {
+    public async listSubscribers(action: (teamsfxBotContext: TeamsFxBotContext) => Promise<void>): Promise<void> {
         const references = await this.store.list();
         for (const reference of references)
             await this.adapter.continueConversation(reference, async (context: TurnContext) => {
-                await action(context);
+                await action(new TeamsFxBotContext(context));
             });
     }
 
-    public async notify(context: TurnContext, activity: Partial<ConversationReference>): Promise<void> {
-        await context.sendActivity(activity);
+    public async notify(context: TeamsFxBotContext, activity: Partial<ConversationReference>): Promise<void> {
+        await context.turnContext.sendActivity(activity);
     }
 
-    public async notifyMember(context: TurnContext, member: TeamsChannelAccount, activity: Partial<ConversationReference>): Promise<void> {
-        const reference = TurnContext.getConversationReference(context.activity);
+    public async notifyMember(context: TeamsFxBotContext, member: TeamsChannelAccount, activity: Partial<ConversationReference>): Promise<void> {
+        const reference = TurnContext.getConversationReference(context.turnContext.activity);
         const personalConversation = this.cloneConversation(reference);
 
-        const connectorClient: ConnectorClient = context.turnState.get(this.adapter.ConnectorClientKey);
+        const connectorClient: ConnectorClient = context.turnContext.turnState.get(this.adapter.ConnectorClientKey);
         const conversation = await connectorClient.conversations.createConversation({
             isGroup: false,
-            tenantId: context.activity.conversation.tenantId,
-            bot: context.activity.recipient,
+            tenantId: context.turnContext.activity.conversation.tenantId,
+            bot: context.turnContext.activity.recipient,
             members: [member],
             activity: undefined,
             channelData: {},
@@ -52,8 +52,8 @@ export class TeamsFxBot {
         });
     }
 
-    public async notifyChannel(context: TurnContext, channel: ChannelInfo, activity: Partial<ConversationReference>): Promise<void> {
-        const reference = TurnContext.getConversationReference(context.activity);
+    public async notifyChannel(context: TeamsFxBotContext, channel: ChannelInfo, activity: Partial<ConversationReference>): Promise<void> {
+        const reference = TurnContext.getConversationReference(context.turnContext.activity);
         const channelConversation = this.cloneConversation(reference);
         channelConversation.conversation.id = channel.id;
 
@@ -64,5 +64,21 @@ export class TeamsFxBot {
 
     private cloneConversation(conversation: Partial<ConversationReference>): ConversationReference {
         return Object.assign(<ConversationReference>{}, conversation);
+    }
+}
+
+class TeamsFxBotContext {
+    public turnContext: TurnContext;
+
+    public get members() {
+        return TeamsInfo.getMembers(this.turnContext);
+    }
+
+    public get channels() {
+        return TeamsInfo.getTeamChannels(this.turnContext, this.turnContext.activity.conversation.id);
+    }
+
+    constructor(turnContext: TurnContext) {
+        this.turnContext = turnContext;
     }
 }
