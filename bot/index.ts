@@ -1,13 +1,7 @@
-// Import required packages
 import * as restify from "restify";
-
-// Import required bot services.
-// See https://aka.ms/bot-services to learn more about the different parts of a bot.
 import { BotFrameworkAdapter, MessageFactory, TeamsActivityHandler, TurnContext } from "botbuilder";
-import { BlobsStorage } from "botbuilder-azure-blobs";
-
-import { TeamsFxMiddleware } from "./sdk/middleware";
 import { TeamsFxBot } from "./sdk/bot";
+import { BlobsStorage } from "botbuilder-azure-blobs";
 
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
@@ -38,7 +32,9 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
 };
 
 // use Azure Blob storage to save subscribers info.
-// const teamsfxBot = new TeamsFxBot(adapter, new BlobsStorage(process.env.blobConnectionString, process.env.blobContainerName));
+// const teamsfxBot = new TeamsFxBot(adapter, {
+//   storage: new BlobsStorage(process.env.blobConnectionString, process.env.blobContainerName)
+// });
 const teamsfxBot = new TeamsFxBot(adapter);
 
 // Create HTTP server.
@@ -56,7 +52,7 @@ server.post("/api/messages", async (req, res) => {
 });
 
 // HTTP trigger for the notification.
-// Case 0: send notification to the default place (Teams/Group Chat/Personal Chat) where the bot is installed..
+// Case 1: send notification to the default place (Teams/Group Chat/Personal Chat) where the bot is installed.
 server.post("/api/notify/default", async (req, res) => {
   await teamsfxBot.listSubscribers(async ctx => {
     await teamsfxBot.notify(ctx, MessageFactory.text(`Hello world!`));
@@ -65,7 +61,7 @@ server.post("/api/notify/default", async (req, res) => {
   res.json({});
 });
 
-// Case 1: send notification to all the members of the subscribed team/group chat.
+// Case 2: send notification to all the members of the subscribed team/group chat.
 server.post("/api/notify/members", async (req, res) => {
   await teamsfxBot.listSubscribers(async ctx => {
     for (const member of await ctx.members) {
@@ -76,7 +72,7 @@ server.post("/api/notify/members", async (req, res) => {
   res.json({});
 });
 
-// Case 2: send notification to particular channel of the subscribed team.
+// Case 3: send notification to particular channel of the subscribed team.
 server.post("/api/notify/channels", async (req, res) => {
   await teamsfxBot.listSubscribers(async ctx => {
     for (const channel of await ctx.channels) {

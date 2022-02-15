@@ -4,24 +4,28 @@ import { FileStorage } from "./fileStorage";
 import { TeamsFxMiddleware } from "./middleware";
 import { ConversationReferenceStore } from "./store";
 
+export interface TeamsFxBotOptions {
+    /**
+     * If `storage` is not provided, FileStorage will be used by default.
+     * You could also use the `BlobsStorage` provided by botbuilder-azure-blobs
+     * or `CosmosDbPartitionedStorage` provided by botbuilder-azure
+     * */
+    storage?: Storage
+}
+
 export class TeamsFxBot {
     public readonly store: ConversationReferenceStore;
     private readonly adapter: BotFrameworkAdapter;
     private readonly key = "teamfx-subscribers";
     private readonly fileName = "conversationReferences.json";
 
-    /**
-     * If `storage` is not provided, FileStorage will be used by default.
-     * You could also use the `BlobsStorage` provided by botbuilder-azure-blobs
-     * or `CosmosDbPartitionedStorage` provided by botbuilder-azure
-     * */
-    constructor(adapter: BotFrameworkAdapter, storage?: Storage) {
-        storage = storage ?? new FileStorage(this.fileName);
+    constructor(adapter: BotFrameworkAdapter, options?: TeamsFxBotOptions) {
+        const storage = options?.storage ?? new FileStorage(this.fileName);
         this.store = new ConversationReferenceStore(storage, this.key);
         this.adapter = adapter.use(new TeamsFxMiddleware(this.store));
     }
 
-    public async listSubscribers(action: (teamsfxBotContext: TeamsFxBotContext) => Promise<void>): Promise<void> {
+    public async listSubscribers(action: (subscriber: TeamsFxBotContext) => Promise<void>): Promise<void> {
         const references = await this.store.list();
         for (const reference of references)
             await this.adapter.continueConversation(reference, async (context: TurnContext) => {
