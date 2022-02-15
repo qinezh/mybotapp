@@ -3,6 +3,7 @@ import { ConversationReference, Storage } from "botbuilder";
 export class ConversationReferenceStore {
     private readonly storage: Storage;
     private readonly storageKey: string;
+    private readonly objectKey = "conversations";
 
     constructor(storage: Storage, storageKey: string) {
         this.storage = storage;
@@ -11,9 +12,11 @@ export class ConversationReferenceStore {
 
     async list(): Promise<Partial<ConversationReference>[]> {
         const items = await this.storage.read([this.storageKey]);
-        const references = items[this.storageKey] ?? new Array<Partial<ConversationReference>>();
+        if (items[this.storageKey] === undefined || items[this.storageKey][this.objectKey] === undefined) {
+            return new Array<Partial<ConversationReference>>()
+        }
 
-        return references;
+        return items[this.storageKey][this.objectKey];
     }
 
     async add(reference: Partial<ConversationReference>): Promise<Partial<ConversationReference>[]> {
@@ -23,7 +26,7 @@ export class ConversationReferenceStore {
         }
 
         references.push(reference);
-        await this.storage.write({ [this.storageKey]: references })
+        await this.storage.write({ [this.storageKey]: { [this.objectKey]: references } })
         return references;
     }
 

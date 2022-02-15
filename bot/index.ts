@@ -4,6 +4,7 @@ import * as restify from "restify";
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
 import { BotFrameworkAdapter, MessageFactory, TeamsActivityHandler, TeamsInfo, TurnContext } from "botbuilder";
+import { BlobsStorage } from "botbuilder-azure-blobs";
 
 import { TeamsFxMiddleware } from "./sdk/middleware";
 import { TeamsFxBot } from "./sdk/bot";
@@ -36,6 +37,8 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
   await context.sendActivity("To continue to run this bot, please fix the bot source code.");
 };
 
+// use Azure Blob storage to save subscribers info.
+// const teamsfxBot = new TeamsFxBot(adapter, new BlobsStorage(process.env.blobConnectionString, process.env.blobContainerName));
 const teamsfxBot = new TeamsFxBot(adapter);
 adapter.use(new TeamsFxMiddleware(process.env.BOT_ID, teamsfxBot));
 

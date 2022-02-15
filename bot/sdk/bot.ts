@@ -9,6 +9,11 @@ export class TeamsFxBot {
     private readonly key = "teamfx-subscribers";
     private readonly fileName = "conversationReferences.json";
 
+    /**
+     * If `storage` is not provided, FileStorage will be used by default.
+     * You could also use the `BlobsStorage` provided by botbuilder-azure-blobs
+     * or `CosmosDbPartitionedStorage` provided by botbuilder-azure
+     * */
     constructor(adapter: BotFrameworkAdapter, storage?: Storage) {
         this.adapter = adapter;
         storage = storage ?? new FileStorage(this.fileName);

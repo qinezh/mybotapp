@@ -18,6 +18,7 @@
   "dependencies": {
     "@microsoft/adaptivecards-tools": "^0.1.2",
     "botbuilder": "~4.15.0",
+    "botbuilder-azure-blobs": "^4.15.0",
     "botbuilder-dialogs": "~4.15.0",
     "fs-extra": "^10.0.0",
     "isomorphic-fetch": "^3.0.0",
