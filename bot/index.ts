@@ -40,7 +40,6 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
 // use Azure Blob storage to save subscribers info.
 // const teamsfxBot = new TeamsFxBot(adapter, new BlobsStorage(process.env.blobConnectionString, process.env.blobContainerName));
 const teamsfxBot = new TeamsFxBot(adapter);
-adapter.use(new TeamsFxMiddleware(process.env.BOT_ID, teamsfxBot));
 
 // Create HTTP server.
 const server = restify.createServer();

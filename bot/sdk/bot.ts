@@ -1,6 +1,7 @@
 import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext, Storage, TeamsInfo } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
 import { FileStorage } from "./fileStorage";
+import { TeamsFxMiddleware } from "./middleware";
 import { ConversationReferenceStore } from "./store";
 
 export class TeamsFxBot {
@@ -15,9 +16,9 @@ export class TeamsFxBot {
      * or `CosmosDbPartitionedStorage` provided by botbuilder-azure
      * */
     constructor(adapter: BotFrameworkAdapter, storage?: Storage) {
-        this.adapter = adapter;
         storage = storage ?? new FileStorage(this.fileName);
         this.store = new ConversationReferenceStore(storage, this.key);
+        this.adapter = adapter.use(new TeamsFxMiddleware(this.store));
     }
 
     public async listSubscribers(action: (teamsfxBotContext: TeamsFxBotContext) => Promise<void>): Promise<void> {

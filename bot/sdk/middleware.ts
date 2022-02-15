@@ -1,19 +1,17 @@
 import { Activity, ConversationReference, Middleware, ResourceResponse, TurnContext } from "botbuilder";
-import { TeamsFxBot } from "./bot";
+import { ConversationReferenceStore } from "./store";
 
 export class TeamsFxMiddleware implements Middleware {
-    private readonly botId: string;
-    private readonly teamsfxBot: TeamsFxBot;
+    private readonly store: ConversationReferenceStore;
 
-    constructor(botId: string, teamsfxBot: TeamsFxBot) {
-        this.botId = botId;
-        this.teamsfxBot = teamsfxBot;
+    constructor(store: ConversationReferenceStore) {
+        this.store = store;
     }
 
     public async onTurn(context: TurnContext, next: () => Promise<void>): Promise<void> {
         if (context.activity && this.isBotAdded(context.activity)) {
             const reference = TurnContext.getConversationReference(context.activity);
-            await this.teamsfxBot.store.add(reference);
+            await this.store.add(reference);
         }
 
         // hook up onSend pipeline
@@ -42,8 +40,8 @@ export class TeamsFxMiddleware implements Middleware {
     private isBotAdded(activity: Partial<Activity>): boolean {
         if (activity.membersAdded?.length > 0) {
             for (const member of activity.membersAdded) {
-                if (member.id.includes(this.botId)) {
-                    return true
+                if (member.id === activity.recipient.id) {
+                    return true;
                 }
             }
         }
