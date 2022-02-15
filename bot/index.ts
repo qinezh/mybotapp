@@ -54,8 +54,8 @@ server.post("/api/messages", async (req, res) => {
 // HTTP trigger for the notification.
 // Case 1: send notification to the default place (Teams/Group Chat/Personal Chat) where the bot is installed.
 server.post("/api/notify/default", async (req, res) => {
-  await teamsfxBot.listSubscribers(async ctx => {
-    await teamsfxBot.notify(ctx, MessageFactory.text(`Hello world!`));
+  await teamsfxBot.forEachSubscribers(async subscriber => {
+    await teamsfxBot.notifySubscriber(subscriber, MessageFactory.text(`Hello world!`));
   });
 
   res.json({});
@@ -63,9 +63,9 @@ server.post("/api/notify/default", async (req, res) => {
 
 // Case 2: send notification to all the members of the subscribed team/group chat.
 server.post("/api/notify/members", async (req, res) => {
-  await teamsfxBot.listSubscribers(async ctx => {
-    for (const member of await ctx.members) {
-      await teamsfxBot.notifyMember(ctx, member, MessageFactory.text(`Hello ${member.name}!`));
+  await teamsfxBot.forEachSubscribers(async subscriber => {
+    for (const member of await subscriber.members) {
+      await teamsfxBot.notifyMember(member, MessageFactory.text(`Hello ${member.account.name}!`));
     }
   });
 
@@ -74,11 +74,11 @@ server.post("/api/notify/members", async (req, res) => {
 
 // Case 3: send notification to particular channel of the subscribed team.
 server.post("/api/notify/channels", async (req, res) => {
-  await teamsfxBot.listSubscribers(async ctx => {
-    for (const channel of await ctx.channels) {
-      switch (channel.name) {
+  await teamsfxBot.forEachSubscribers(async subscriber => {
+    for (const channel of await subscriber.channels) {
+      switch (channel.info.name) {
         case "Test":
-          await teamsfxBot.notifyChannel(ctx, channel, MessageFactory.text(`Hello world!`));
+          await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Hello world!`));
           break;
         default:
         // pass
