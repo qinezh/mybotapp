@@ -1,14 +1,18 @@
-import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext } from "botbuilder";
+import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext, Storage } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
-import { ConversationReferenceFileStore, ConversationReferenceStore } from "./store";
+import { FileStorage } from "./fileStorage";
+import { ConversationReferenceStore } from "./store";
 
 export class TeamsFxBot {
     public readonly store: ConversationReferenceStore;
     private readonly adapter: BotFrameworkAdapter;
+    private readonly key = "teamfx-subscribers";
+    private readonly fileName = "conversationReferences.json";
 
-    constructor(adapter: BotFrameworkAdapter, store?: ConversationReferenceStore) {
+    constructor(adapter: BotFrameworkAdapter, storage?: Storage) {
         this.adapter = adapter;
-        this.store = store ?? new ConversationReferenceFileStore();
+        storage = storage ?? new FileStorage(this.fileName);
+        this.store = new ConversationReferenceStore(storage, this.key);
     }
 
     public async listSubscribers(action: (subscriberContext: TurnContext) => Promise<void>): Promise<void> {

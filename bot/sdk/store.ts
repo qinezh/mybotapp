@@ -1,42 +1,30 @@
-import { ConversationReference } from "botbuilder";
-import * as fs from "fs";
+import { ConversationReference, Storage } from "botbuilder";
 
-export interface ConversationReferenceStore {
-    list(): Promise<Set<Partial<ConversationReference>>>;
-    add(reference: Partial<ConversationReference>): Promise<void>;
-    update(reference: Partial<ConversationReference>): Promise<void>;
-    delete(reference: Partial<ConversationReference>): Promise<void>;
-}
+export class ConversationReferenceStore {
+    private readonly storage: Storage;
+    private readonly storageKey: string;
 
-export class ConversationReferenceFileStore implements ConversationReferenceStore {
-    private filePath: string;
-    private references: Set<Partial<ConversationReference>> | undefined;
-
-    constructor(filePath?: string) {
-        this.filePath = filePath ?? "./conversationReferences.json";
+    constructor(storage: Storage, storageKey: string) {
+        this.storage = storage;
+        this.storageKey = storageKey
     }
 
-    list(): Promise<Set<Partial<ConversationReference>>> {
-        if (this.references === undefined) {
-            if (fs.existsSync(this.filePath)) {
-                const data = fs.readFileSync(this.filePath, { encoding: "utf-8" });
-                this.references = JSON.parse(data);
-            }
-        }
+    async list(): Promise<Partial<ConversationReference>[]> {
+        const items = await this.storage.read([this.storageKey]);
+        const references = items[this.storageKey] ?? new Array<Partial<ConversationReference>>();
 
-        return Promise.resolve(this.references);
+        return references;
     }
 
-    add(reference: Partial<ConversationReference>): Promise<void> {
-        if (this.references === undefined) {
-            this.references = new Set();
+    async add(reference: Partial<ConversationReference>): Promise<Partial<ConversationReference>[]> {
+        const references = await this.list();
+        if (new Set(references).has(reference)) {
+            return references;
         }
 
-        this.references.add(reference);
-        const content = JSON.stringify(Array.from(this.references), null, 4);
-        fs.writeFileSync(this.filePath, content, { encoding: "utf-8" });
-
-        return Promise.resolve();
+        references.push(reference);
+        await this.storage.write({ [this.storageKey]: references })
+        return references;
     }
 
     update(reference: Partial<ConversationReference>): Promise<void> {
@@ -46,5 +34,4 @@ export class ConversationReferenceFileStore implements ConversationReferenceStor
     delete(reference: Partial<ConversationReference>): Promise<void> {
         throw new Error("Method not implemented.");
     }
-
 }
