@@ -31,11 +31,18 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
   await context.sendActivity("To continue to run this bot, please fix the bot source code.");
 };
 
+const welcomeMessage = {
+  message: MessageFactory.text("Hello, this is notification bot created by TeamsFx.")
+};
+
 // use Azure Blob storage to save subscribers info.
 // const teamsfxBot = new TeamsFxBot(adapter, {
-//   storage: new BlobsStorage(process.env.blobConnectionString, process.env.blobContainerName)
+//   storage: new BlobsStorage(process.env.blobConnectionString, process.env.blobContainerName),
+//   welcomeMessage
 // });
-const teamsfxBot = new TeamsFxBot(adapter);
+const teamsfxBot = new TeamsFxBot(adapter, {
+  welcomeMessage
+});
 
 // Create HTTP server.
 const server = restify.createServer();

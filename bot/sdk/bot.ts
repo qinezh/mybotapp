@@ -1,7 +1,7 @@
-import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext, Storage, TeamsInfo } from "botbuilder";
+import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext, Storage, TeamsInfo, Activity } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
 import { FileStorage } from "./fileStorage";
-import { TeamsFxMiddleware } from "./middleware";
+import { TeamsFxMiddleware, WelcomeMessage } from "./middleware";
 import { ConversationReferenceStore } from "./store";
 
 export interface TeamsFxBotOptions {
@@ -10,7 +10,8 @@ export interface TeamsFxBotOptions {
      * You could also use the `BlobsStorage` provided by botbuilder-azure-blobs
      * or `CosmosDbPartitionedStorage` provided by botbuilder-azure
      * */
-    storage?: Storage
+    storage?: Storage,
+    welcomeMessage?: WelcomeMessage
 }
 
 export class TeamsFxBot {
@@ -22,7 +23,10 @@ export class TeamsFxBot {
     constructor(adapter: BotFrameworkAdapter, options?: TeamsFxBotOptions) {
         const storage = options?.storage ?? new FileStorage(this.fileName);
         this.store = new ConversationReferenceStore(storage, this.key);
-        this.adapter = adapter.use(new TeamsFxMiddleware(this.store));
+        this.adapter = adapter.use(new TeamsFxMiddleware({
+            store: this.store,
+            welcomeMessage: options.welcomeMessage
+        }));
     }
 
     public async forEachSubscribers(action: (subscriber: TeamsFxBotContext) => Promise<void>): Promise<void> {
