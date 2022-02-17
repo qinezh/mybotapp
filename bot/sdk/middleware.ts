@@ -11,6 +11,14 @@ export interface TeamsFxMiddlewareOptions {
     settingsProvider?: TeamsFxBotSettingsProvider
 }
 
+enum ActivityType {
+    CurrentBotAdded,
+    NewMemberAdded,
+    SettingsCardSubmitted,
+    SettingCommandReceived,
+    Unknown
+}
+
 export class TeamsFxMiddleware implements Middleware {
     private readonly conversationReferenceStore: ConversationReferenceStore;
     private readonly settingsStore: BotSettingsStore;
@@ -26,44 +34,66 @@ export class TeamsFxMiddleware implements Middleware {
     }
 
     public async onTurn(context: TurnContext, next: () => Promise<void>): Promise<void> {
-        if (this.isBotAdded(context.activity)) {
-            // Bot is added for the first time.
-            const reference = TurnContext.getConversationReference(context.activity);
-            await this.conversationReferenceStore.add(reference);
+        const type = this.classifyActivity(context.activity);
+        switch (type) {
+            case ActivityType.CurrentBotAdded:
+                const reference = TurnContext.getConversationReference(context.activity);
+                await this.conversationReferenceStore.add(reference);
 
-            if (this.welcomeMessage?.trigger === WelcomeMessageTrigger.BotInstall) {
+                if (this.welcomeMessage?.trigger === WelcomeMessageTrigger.BotInstall) {
+                    await context.sendActivity(this.welcomeMessage.message);
+                }
+                break;
+            case ActivityType.NewMemberAdded:
                 await context.sendActivity(this.welcomeMessage.message);
-            }
-        } else if (this.isMembersAdded(context.activity) && this.welcomeMessage?.trigger === WelcomeMessageTrigger.NewMemberAdded) {
-            // New members (current bot is excluded) are added. 
-            await context.sendActivity(this.welcomeMessage.message);
-        } else if (this.settingsProvider && this.isSettingsCardSubmitted(context.activity)) {
-            // Handle adaptive card submit operation
-            const subscriberId = Utils.getSubscriberId(context);
-            const settings = await this.settingsProvider.handleCardSubmit(
-                new TeamsFxBotContext(context, this.settingsStore),
-                context.activity.value
-            );
-            this.settingsStore.set(subscriberId, settings);
-        } else if (this.settingsProvider) {
-            // Send teamsfx bot settings
-            let text = context.activity.text;
-            const removedMentionText = TurnContext.removeRecipientMention(context.activity);
+                break;
+            case ActivityType.SettingsCardSubmitted:
+                const subscriberId = Utils.getSubscriberId(context);
+                const settings = await this.settingsProvider.handleCardSubmit(
+                    new TeamsFxBotContext(context, this.settingsStore),
+                    context.activity.value
+                );
+                this.settingsStore.set(subscriberId, settings);
+                break;
+            case ActivityType.SettingCommandReceived:
+                const card = await this.settingsProvider.sendSettingsCard(new TeamsFxBotContext(context, this.settingsStore));
+                await context.sendActivity({
+                    attachments: [CardFactory.adaptiveCard(card)]
+                });
+                break;
+            default:
+                break;
+        }
+
+        await next();
+    }
+
+    private classifyActivity(activity: Activity): ActivityType {
+        if (this.isBotAdded(activity)) {
+            return ActivityType.CurrentBotAdded;
+        }
+
+        if (this.isMembersAdded(activity)) {
+            return ActivityType.NewMemberAdded;
+        }
+
+        if (this.settingsProvider && this.isSettingsCardSubmitted(activity)) {
+            return ActivityType.SettingCommandReceived;
+        }
+
+        if (this.settingsProvider) {
+            let text = activity.text;
+            const removedMentionText = TurnContext.removeRecipientMention(activity);
             if (removedMentionText) {
                 text = removedMentionText.toLowerCase().replace(/\n|\r\n/g, "").trim();
             }
 
-            switch (text) {
-                case this.settingsProvider.commandName: {
-                    const card = await this.settingsProvider.sendSettingsCard(new TeamsFxBotContext(context, this.settingsStore));
-                    await context.sendActivity({
-                        attachments: [CardFactory.adaptiveCard(card)]
-                    });
-                }
+            if (text === this.settingsProvider.commandName) {
+                return ActivityType.SettingCommandReceived
             }
         }
 
-        await next();
+        return ActivityType.Unknown;
     }
 
     // current bot is excluded.

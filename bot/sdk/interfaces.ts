@@ -39,10 +39,6 @@ export abstract class BasicTeamsFxBotSettingsProvider implements TeamsFxBotSetti
     abstract sendSettingsCard(context: BotContext): Promise<any>;
 }
 
-export interface TeamsFxBotSettingsStore {
-    get(): Promise<TeamsFxBotSettings>
-}
-
 export type TeamsFxBotSettings = { [key: string]: any };
 
 export interface TeamsFxMember {
