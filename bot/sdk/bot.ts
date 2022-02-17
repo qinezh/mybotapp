@@ -1,8 +1,10 @@
-import { BotFrameworkAdapter, ChannelInfo, ConversationReference, TeamsChannelAccount, TurnContext, Storage, TeamsInfo, Activity } from "botbuilder";
+import { BotFrameworkAdapter, ConversationReference, TurnContext, Storage } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
+import { TeamsFxBotContext } from "./context";
 import { FileStorage } from "./fileStorage";
-import { TeamsFxMiddleware, WelcomeMessage } from "./middleware";
-import { ConversationReferenceStore } from "./store";
+import { TeamsFxMember, TeamsFxChannel, WelcomeMessage, TeamsFxBotSettingsProvider } from "./interfaces";
+import { TeamsFxMiddleware } from "./middleware";
+import { BotSettingsStore, ConversationReferenceStore } from "./store";
 
 export interface TeamsFxBotOptions {
     /**
@@ -11,29 +13,35 @@ export interface TeamsFxBotOptions {
      * or `CosmosDbPartitionedStorage` provided by botbuilder-azure
      * */
     storage?: Storage,
-    welcomeMessage?: WelcomeMessage
+    welcomeMessage?: WelcomeMessage,
+    settingsProvider?: TeamsFxBotSettingsProvider
 }
 
 export class TeamsFxBot {
-    public readonly store: ConversationReferenceStore;
+    private readonly conversationReferenceStore: ConversationReferenceStore;
+    private readonly settingsStore: BotSettingsStore;
     private readonly adapter: BotFrameworkAdapter;
-    private readonly key = "teamfx-subscribers";
-    private readonly fileName = "conversationReferences.json";
+    private readonly conversationReferenceStoreKey = "teamfx-subscribers";
+    private readonly settingsStoreKey = "teamsfx-settings";
+    private readonly fileName = ".teamsfx.bot.json";
 
     constructor(adapter: BotFrameworkAdapter, options?: TeamsFxBotOptions) {
         const storage = options?.storage ?? new FileStorage(this.fileName);
-        this.store = new ConversationReferenceStore(storage, this.key);
+        this.conversationReferenceStore = new ConversationReferenceStore(storage, this.conversationReferenceStoreKey);
+        this.settingsStore = new BotSettingsStore(storage, this.settingsStoreKey);
         this.adapter = adapter.use(new TeamsFxMiddleware({
-            store: this.store,
-            welcomeMessage: options.welcomeMessage
+            conversationReferenceStore: this.conversationReferenceStore,
+            settingsStore: this.settingsStore,
+            welcomeMessage: options.welcomeMessage,
+            settingsProvider: options.settingsProvider
         }));
     }
 
     public async forEachSubscribers(action: (subscriber: TeamsFxBotContext) => Promise<void>): Promise<void> {
-        const references = await this.store.list();
+        const references = await this.conversationReferenceStore.list();
         for (const reference of references)
             await this.adapter.continueConversation(reference, async (context: TurnContext) => {
-                await action(new TeamsFxBotContext(context));
+                await action(new TeamsFxBotContext(context, this.settingsStore));
             });
     }
 
@@ -73,53 +81,5 @@ export class TeamsFxBot {
 
     private cloneConversation(conversation: Partial<ConversationReference>): ConversationReference {
         return Object.assign(<ConversationReference>{}, conversation);
-    }
-}
-
-interface TeamsFxMember {
-    subscriber: TeamsFxBotContext,
-    account: TeamsChannelAccount
-}
-
-interface TeamsFxChannel {
-    subscriber: TeamsFxBotContext,
-    info: ChannelInfo
-}
-
-class TeamsFxBotContext {
-    public turnContext: TurnContext;
-
-    public get members() {
-        return (async () => {
-            const teamsMembers = await TeamsInfo.getMembers(this.turnContext);
-            const teamsfxMembers: TeamsFxMember[] = [];
-            for (const member of teamsMembers) {
-                teamsfxMembers.push({
-                    subscriber: this,
-                    account: member
-                })
-            }
-
-            return teamsfxMembers;
-        })();
-    }
-
-    public get channels() {
-        return (async () => {
-            const teamsChannels = await TeamsInfo.getTeamChannels(this.turnContext, this.turnContext.activity.conversation.id);
-            const teamsfxChannels: TeamsFxChannel[] = [];
-            for (const channel of teamsChannels) {
-                teamsfxChannels.push({
-                    subscriber: this,
-                    info: channel
-                })
-            }
-
-            return teamsfxChannels;
-        })();
-    }
-
-    constructor(turnContext: TurnContext) {
-        this.turnContext = turnContext;
     }
 }

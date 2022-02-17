@@ -7,3 +7,5 @@ POST http://localhost:3978/api/notify/members
 ### send to channels
 POST http://localhost:3978/api/notify/channels
 
+### send to configured channels
+POST http://localhost:3978/api/notify/configured

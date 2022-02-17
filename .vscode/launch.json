@@ -25,7 +25,7 @@
             "name": "Launch Bot (Edge)",
             "type": "pwa-msedge",
             "request": "launch",
-            "url": "https://teams.microsoft.com/l/app/${localTeamsAppId}?installAppPackage=true&webjoin=true&${account-hint}",
+            "url": "https://teams.microsoft.com/l/app/${localTeamsAppId}?installAppPackage=true&${account-hint}",
             "cascadeTerminateToConfigurations": [
                 "Start and Attach to Bot"
             ],

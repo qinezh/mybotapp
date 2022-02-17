@@ -1,4 +1,5 @@
 import { ConversationReference, Storage } from "botbuilder";
+import { TeamsFxBotSettings } from "./interfaces";
 
 export class ConversationReferenceStore {
     private readonly storage: Storage;
@@ -36,5 +37,28 @@ export class ConversationReferenceStore {
 
     delete(reference: Partial<ConversationReference>): Promise<void> {
         throw new Error("Method not implemented.");
+    }
+}
+
+export class BotSettingsStore {
+    private readonly storage: Storage;
+    private readonly storageKey: string;
+
+    constructor(storage: Storage, storageKey: string) {
+        this.storage = storage;
+        this.storageKey = storageKey
+    }
+
+    public async get(subscriberId: string): Promise<TeamsFxBotSettings> {
+        const items = await this.storage.read([this.storageKey]);
+        if (items[this.storageKey] === undefined || items[this.storageKey][subscriberId] === undefined) {
+            return {};
+        }
+
+        return items[this.storageKey][subscriberId];
+    }
+
+    public async set(subscriberId: string, settings: TeamsFxBotSettings): Promise<void> {
+        await this.storage.write({ [this.storageKey]: { [subscriberId]: settings } })
     }
 }

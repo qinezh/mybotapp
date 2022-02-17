@@ -7,4 +7,4 @@ node_modules
 .env.teamsfx.local
 subscriptionInfo.json
 build
-conversationReferences.json
+.teamsfx.bot.json

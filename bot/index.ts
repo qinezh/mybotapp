@@ -2,6 +2,8 @@ import * as restify from "restify";
 import { BotFrameworkAdapter, MessageFactory, TeamsActivityHandler, TurnContext } from "botbuilder";
 import { TeamsFxBot } from "./sdk/bot";
 import { BlobsStorage } from "botbuilder-azure-blobs";
+import { AppSettingsProvider } from "./cards";
+import { WelcomeMessage } from "./sdk/interfaces";
 
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
@@ -31,17 +33,22 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
   await context.sendActivity("To continue to run this bot, please fix the bot source code.");
 };
 
-const welcomeMessage = {
+const welcomeMessage: WelcomeMessage = {
   message: MessageFactory.text("Hello, this is notification bot created by TeamsFx.")
 };
+const appSettingsProvider = new AppSettingsProvider({
+  commandName: "settings"
+});
 
 // use Azure Blob storage to save subscribers info.
 // const teamsfxBot = new TeamsFxBot(adapter, {
 //   storage: new BlobsStorage(process.env.blobConnectionString, process.env.blobContainerName),
-//   welcomeMessage
+//   welcomeMessage,
+//   settingsProvider: appSettingsProvider
 // });
 const teamsfxBot = new TeamsFxBot(adapter, {
-  welcomeMessage
+  welcomeMessage,
+  settingsProvider: appSettingsProvider
 });
 
 // Create HTTP server.
@@ -89,6 +96,22 @@ server.post("/api/notify/channels", async (req, res) => {
           break;
         default:
         // pass
+      }
+    }
+  });
+
+  res.json({});
+});
+
+// Case 4: send notification to the Teams channels which can be configured.
+// Type command `settings` to select the channels that needs to be notified.
+server.post("/api/notify/configured", async (req, res) => {
+  await teamsfxBot.forEachSubscribers(async subscriber => {
+    const settings = await subscriber.settings;
+    for (const channel of await subscriber.channels) {
+      // check if the channel is enabled.
+      if (settings[channel.info.id]) {
+        await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Hello world!`));
       }
     }
   });
