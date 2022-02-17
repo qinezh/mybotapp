@@ -22,7 +22,7 @@ export class ConversationReferenceStore {
 
     async add(reference: Partial<ConversationReference>): Promise<Partial<ConversationReference>[]> {
         const references = await this.list();
-        if (references.find(r => r.activityId === reference.activityId)) {
+        if (references.find(r => r.conversation.id === reference.conversation.id)) {
             return references;
         }
 

@@ -118,3 +118,20 @@ server.post("/api/notify/configured", async (req, res) => {
 
   res.json({});
 });
+
+// Case 5: reply to particular conversation in a subscribed Teams channel.
+server.post("/api/notify/reply", async (req, res) => {
+  await teamsfxBot.forEachSubscribers(async subscriber => {
+    const channels = await subscriber.channels;
+    const channel = channels.find(c => c.info.name === "Test");
+    if (channel) {
+      // send notification as a new conversation.
+      const messageId = await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Ping`));
+
+      // send notification as a reply to an existing conversation.
+      await teamsfxBot.replyConversation(channel, messageId, MessageFactory.text(`Pong`));
+    }
+  });
+
+  res.json({});
+});

@@ -1,4 +1,4 @@
-import { BotFrameworkAdapter, ConversationReference, TurnContext, Storage } from "botbuilder";
+import { BotFrameworkAdapter, ConversationReference, TurnContext, Storage, Activity } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
 import { TeamsFxBotContext } from "./context";
 import { FileStorage } from "./fileStorage";
@@ -45,11 +45,11 @@ export class TeamsFxBot {
             });
     }
 
-    public async notifySubscriber(subscriber: TeamsFxBotContext, activity: Partial<ConversationReference>): Promise<void> {
+    public async notifySubscriber(subscriber: TeamsFxBotContext, activity: Partial<Activity>): Promise<void> {
         await subscriber.turnContext.sendActivity(activity);
     }
 
-    public async notifyMember(member: TeamsFxMember, activity: Partial<ConversationReference>): Promise<void> {
+    public async notifyMember(member: TeamsFxMember, activity: Partial<Activity>): Promise<void> {
         const reference = TurnContext.getConversationReference(member.subscriber.turnContext.activity);
         const personalConversation = this.cloneConversation(reference);
 
@@ -69,13 +69,31 @@ export class TeamsFxBot {
         });
     }
 
-    public async notifyChannel(channel: TeamsFxChannel, activity: Partial<ConversationReference>): Promise<void> {
+    public async notifyChannel(channel: TeamsFxChannel, activity: Partial<Activity>): Promise<string> {
         const reference = TurnContext.getConversationReference(channel.subscriber.turnContext.activity);
         const channelConversation = this.cloneConversation(reference);
         channelConversation.conversation.id = channel.info.id;
 
+        let messageId = "";
         await this.adapter.continueConversation(channelConversation, async (context: TurnContext) => {
-            await context.sendActivity(activity);
+            const response = await context.sendActivity(activity);
+            messageId = response.id;
+        });
+
+        return messageId;
+    }
+
+    public async replyConversation(channel: TeamsFxChannel, messageId: string, activity: Partial<Activity>): Promise<void> {
+        const reference = TurnContext.getConversationReference(channel.subscriber.turnContext.activity);
+        const replayConversation = this.cloneConversation(reference);
+        replayConversation.conversation.id = channel.info.id + `;messageid=${messageId}`;
+
+        await this.adapter.continueConversation(replayConversation, async (context: TurnContext) => {
+            try {
+                await context.sendActivity(activity);
+            } catch (err) {
+                console.log(err);
+            }
         });
     }
 

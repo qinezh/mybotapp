@@ -9,3 +9,6 @@ POST http://localhost:3978/api/notify/channels
 
 ### send to configured channels
 POST http://localhost:3978/api/notify/configured
+
+### send reply to existing conversation
+POST http://localhost:3978/api/notify/reply

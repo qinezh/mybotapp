@@ -37,8 +37,8 @@ export class TeamsFxMiddleware implements Middleware {
         } else if (this.isMembersAdded(context.activity) && this.welcomeMessage?.trigger === WelcomeMessageTrigger.NewMemberAdded) {
             // New members (current bot is excluded) are added. 
             await context.sendActivity(this.welcomeMessage.message);
-        } else if (this.isSettingsCardSubmitted(context.activity)) {
-            // Handle adaptive card submit
+        } else if (this.settingsProvider && this.isSettingsCardSubmitted(context.activity)) {
+            // Handle adaptive card submit operation
             const subscriberId = Utils.getSubscriberId(context);
             const settings = await this.settingsProvider.handleCardSubmit(
                 new TeamsFxBotContext(context, this.settingsStore),
