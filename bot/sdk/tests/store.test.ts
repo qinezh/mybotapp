@@ -1,11 +1,11 @@
 import "mocha";
 import { assert } from "chai";
 import { FileStorage } from "../fileStorage";
-import { ConversationReferenceStore } from "../store";
+import { BotSettingsStore, ConversationReferenceStore } from "../store";
 import { ConversationReference } from "botbuilder";
 import * as fse from "fs-extra";
 
-describe("File Store Test", () => {
+describe("Conversation Reference Store Test", () => {
     const filePath = "./store.test.json";
     const storeKey = "fileStoreTest";
 
@@ -15,9 +15,15 @@ describe("File Store Test", () => {
 
     const channelReference = {
         "activityId": "0",
+        "conversation": {
+            "id": "0"
+        }
     } as Partial<ConversationReference>;
     const personalReference = {
         "activityId": "1",
+        "conversation": {
+            "id": "1"
+        }
     } as Partial<ConversationReference>;
 
     it("basic file store", async () => {
@@ -27,5 +33,38 @@ describe("File Store Test", () => {
 
         references = await store.add(personalReference);
         assert.equal(references[1].activityId, "1");
+    });
+});
+
+describe("Settings Store Test", () => {
+    const filePath = "./settingStore.test.json";
+    const storeKey = "settingsStoreTest";
+
+    const setting1 = {
+        "teams1": {
+            "enabled": true
+        }
+    };
+    const setting2 = {
+        "teams2": {
+            "enabled": false
+        }
+    };
+
+    afterEach(async () => {
+        await fse.remove(filePath);
+    });
+
+    it("basic settings store", async () => {
+        const store = new BotSettingsStore(new FileStorage(filePath), storeKey);
+        await store.set("subs1", setting1);
+        await store.set("subs2", setting2);
+
+        const actual_setting1 = await store.get("subs1");
+        const actual_setting2 = await store.get("subs2");
+
+
+        assert.deepEqual(actual_setting1, setting1);
+        assert.deepEqual(actual_setting2, setting2);
     });
 });

@@ -22,7 +22,7 @@ export class ConversationReferenceStore {
 
     async add(reference: Partial<ConversationReference>): Promise<Partial<ConversationReference>[]> {
         const references = await this.list();
-        if (references.find(r => r.conversation.id === reference.conversation.id)) {
+        if (references.find(r => r.conversation?.id === reference.conversation?.id)) {
             return references;
         }
 
@@ -59,6 +59,15 @@ export class BotSettingsStore {
     }
 
     public async set(subscriberId: string, settings: TeamsFxBotSettings): Promise<void> {
-        await this.storage.write({ [this.storageKey]: { [subscriberId]: settings } })
+        const items = await this.storage.read([this.storageKey]);
+        if (!items[this.storageKey]) {
+            items[this.storageKey] = {
+                [subscriberId]: settings
+            };
+        } else {
+            items[this.storageKey][subscriberId] = settings;
+        }
+
+        await this.storage.write({ [this.storageKey]: items[this.storageKey] })
     }
 }

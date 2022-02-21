@@ -78,7 +78,7 @@ export class TeamsFxMiddleware implements Middleware {
         }
 
         if (this.settingsProvider && this.isSettingsCardSubmitted(activity)) {
-            return ActivityType.SettingCommandReceived;
+            return ActivityType.SettingsCardSubmitted;
         }
 
         if (this.settingsProvider) {
