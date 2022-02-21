@@ -65,6 +65,14 @@ server.post("/api/messages", async (req, res) => {
   });
 });
 
+// Time trigger for the notification.
+// Case 0: scheduled job to send notification to the default place (Teams/Group Chat/Personal Chat) where the bot is installed.
+setInterval(async () => {
+  await teamsfxBot.forEachSubscribers(async subscriber => {
+    await teamsfxBot.notifySubscriber(subscriber, MessageFactory.text(`Hello world! (this is a scheduled notification.)`));
+  });
+}, 30 * 1000); // every 30 seconds
+
 // HTTP trigger for the notification.
 // Case 1: send notification to the default place (Teams/Group Chat/Personal Chat) where the bot is installed.
 server.post("/api/notify/default", async (req, res) => {
