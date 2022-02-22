@@ -1,5 +1,21 @@
 # TeamsFx Notification
 
+## Basic Usage
+
+```ts
+const teamsfxBot = new TeamsFxBot(adapter);
+
+server.post("/api/notify/default", async (req, res) => {
+  await teamsfxBot.forEachSubscribers(async subscriber => {
+    await teamsfxBot.notifySubscriber(subscriber, MessageFactory.text(`Hello world!`));
+  });
+
+  res.json({});
+});
+```
+
+Check [index.ts](bot/src/index.ts) for more details.
+
 ## Options to create TeamsFx Bot.
 
 - `storage`: specify the storage to save subscribers info, by default it's local file storage, and you could use Azure Blob instead.
