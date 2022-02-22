@@ -38,10 +38,12 @@
         },
         {
             "label": "Start Bot",
+            "dependsOn": "teamsfx: bot start"
+        },
+        {
+            "label": "bot npm install",
             "type": "shell",
-            "command": "npm run dev:teamsfx",
-            "isBackground": true,
-            "problemMatcher": "$teamsfx-bot-watch",
+            "command": "npm install --no-audit",
             "options": {
                 "cwd": "${workspaceFolder}/bot"
             }

@@ -7,10 +7,10 @@
   "main": "./lib/index.js",
   "scripts": {
     "dev:teamsfx": "env-cmd --silent -f .env.teamsfx.local npm run dev",
-    "dev": "nodemon --exec node --inspect=9239 --signal SIGINT -r ts-node/register ./src/index.ts",
+    "dev": "nodemon -e ts --exec node --inspect=9239 --signal SIGINT -r ts-node/register ./src/index.ts",
     "build": "tsc --build",
     "start": "node ./lib/src/index.js",
-    "test": "npm run build && mocha \"tests/**/*.test.ts\"",
+    "test": "npm run build && mocha --require ts-node/register \"tests/**/*.test.ts\"",
     "watch": "nodemon --watch ./src -e ts --exec \"npm run start\""
   },
   "repository": {
