@@ -1,7 +1,7 @@
 import "mocha";
 import { assert } from "chai";
-import { FileStorage } from "../fileStorage";
-import { BotSettingsStore, ConversationReferenceStore } from "../store";
+import { FileStorage } from "../src/sdk/fileStorage";
+import { BotSettingsStore, ConversationReferenceStore } from "../src/sdk/store";
 import { ConversationReference } from "botbuilder";
 import * as fse from "fs-extra";
 

@@ -6,9 +6,11 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "scripts": {
+    "dev:teamsfx": "env-cmd --silent -f .env.teamsfx.local npm run dev",
+    "dev": "nodemon --exec node --inspect=9239 --signal SIGINT -r ts-node/register ./src/index.ts",
     "build": "tsc --build",
-    "start": "node ./lib/index.js",
-    "test": "npm run build && mocha \"sdk/tests/**/*.test.ts\"",
+    "start": "node ./lib/src/index.js",
+    "test": "npm run build && mocha \"tests/**/*.test.ts\"",
     "watch": "nodemon --watch ./src -e ts --exec \"npm run start\""
   },
   "repository": {
@@ -29,6 +31,7 @@
     "@types/fs-extra": "^9.0.13",
     "@types/mocha": "^9.1.0",
     "@types/restify": "8.4.2",
+    "env-cmd": "^10.1.0",
     "chai": "^4.3.6",
     "mocha": "^9.2.0",
     "nodemon": "^2.0.7",

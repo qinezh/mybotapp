@@ -1,6 +1,6 @@
 import "mocha";
 import { assert } from "chai";
-import { FileStorage } from "../fileStorage";
+import { FileStorage } from "../src/sdk/fileStorage";
 import * as fse from "fs-extra";
 
 describe("File Storage Test", () => {

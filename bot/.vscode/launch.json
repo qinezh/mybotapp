@@ -4,14 +4,14 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Run Test",
+            "name": "Run Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "-r",
                 "ts-node/register",
                 "--no-timeouts",
                 "--colors",
-                "${workspaceFolder}/sdk/**/*.test.ts"
+                "${workspaceFolder}/tests/**/*.test.ts"
             ],
             "preLaunchTask": "npm: build",
             "console": "integratedTerminal",
