@@ -28,9 +28,14 @@ export class TeamsFxMiddleware implements Middleware {
     constructor(options: TeamsFxMiddlewareOptions) {
         this.conversationReferenceStore = options.conversationReferenceStore;
         this.settingsStore = options.settingsStore;
-        this.welcomeMessage = options.welcomeMessage;
-        this.welcomeMessage.trigger = options.welcomeMessage.trigger ?? WelcomeMessageTrigger.BotInstall;
-        this.settingsProvider = options.settingsProvider;
+        if (options.welcomeMessage) {
+            this.welcomeMessage = options.welcomeMessage;
+            this.welcomeMessage.trigger = options.welcomeMessage?.trigger ?? WelcomeMessageTrigger.BotInstall;
+        }
+
+        if (options.settingsProvider) {
+            this.settingsProvider = options.settingsProvider;
+        }
     }
 
     public async onTurn(context: TurnContext, next: () => Promise<void>): Promise<void> {

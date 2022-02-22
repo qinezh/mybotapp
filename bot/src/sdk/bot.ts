@@ -32,8 +32,8 @@ export class TeamsFxBot {
         this.adapter = adapter.use(new TeamsFxMiddleware({
             conversationReferenceStore: this.conversationReferenceStore,
             settingsStore: this.settingsStore,
-            welcomeMessage: options.welcomeMessage,
-            settingsProvider: options.settingsProvider
+            welcomeMessage: options?.welcomeMessage,
+            settingsProvider: options?.settingsProvider
         }));
     }
 
