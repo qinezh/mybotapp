@@ -1,22 +1,20 @@
 # TeamsFx Notification
 
+## Try It
+
+Install the latest version of VS Code extension [Teams Toolkit](https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.ms-teams-vscode-extension&ssr=false#overview), and press `F5` to launch the app in Teams.
+
 ## Basic Usage
 
 ```ts
-const teamsfxBot = new TeamsFxBot(adapter);
-
-server.post("/api/notify/default", async (req, res) => {
-  await teamsfxBot.forEachSubscribers(async subscriber => {
-    await teamsfxBot.notifySubscriber(subscriber, MessageFactory.text(`Hello world!`));
-  });
-
-  res.json({});
+await teamsfxBot.forEachSubscribers(async subscriber => {
+  await teamsfxBot.notifySubscriber(subscriber, MessageFactory.text(`Hello world!`));
 });
 ```
 
 Check [index.ts](bot/src/index.ts) for more details.
 
-## Options to create TeamsFx Bot.
+## Options to create TeamsFx Bot
 
 - `storage`: specify the storage to save subscribers info, by default it's local file storage, and you could use Azure Blob instead.
 - `welcomeMessage`: setup welcome message once bot is install.
@@ -56,14 +54,10 @@ setInterval(async () => {
 
 Sample usage:
 ```ts
-server.post("/api/notify/members", async (req, res) => {
-  await teamsfxBot.forEachSubscribers(async subscriber => {
-    for (const member of await subscriber.members) {
-      await teamsfxBot.notifyMember(member, MessageFactory.text(`Hello ${member.account.name}!`));
-    }
-  });
-
-  res.json({});
+await teamsfxBot.forEachSubscribers(async subscriber => {
+  for (const member of await subscriber.members) {
+    await teamsfxBot.notifyMember(member, MessageFactory.text(`Hello ${member.account.name}!`));
+  }
 });
 ```
 
@@ -71,40 +65,32 @@ server.post("/api/notify/members", async (req, res) => {
 
 Sample usage:
 ```ts
-server.post("/api/notify/channels", async (req, res) => {
-  await teamsfxBot.forEachSubscribers(async subscriber => {
-    for (const channel of await subscriber.channels) {
-      switch (channel.info.name) {
-        case "Test":
-          await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Hello world!`));
-          break;
-        default:
-        // pass
-      }
+await teamsfxBot.forEachSubscribers(async subscriber => {
+  for (const channel of await subscriber.channels) {
+    switch (channel.info.name) {
+      case "Test":
+        await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Hello world!`));
+        break;
+      default:
+      // pass
     }
-  });
-
-  res.json({});
+  }
 });
 ```
 
 ### Case 4: send notification to the Teams channels which can be configured.
-Type command `settings` to select the channels that needs to be notified.
+Type bot command `settings` in Teams to select the channels that needs to be notified.
 
 Sample usage:
 ```ts
-server.post("/api/notify/configured", async (req, res) => {
-  await teamsfxBot.forEachSubscribers(async subscriber => {
-    const settings = await subscriber.settings;
-    for (const channel of await subscriber.channels) {
-      // check if the channel is enabled.
-      if (settings[channel.info.id]) {
-        await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Hello world!`));
-      }
+await teamsfxBot.forEachSubscribers(async subscriber => {
+  const settings = await subscriber.settings;
+  for (const channel of await subscriber.channels) {
+    // check if the channel is enabled.
+    if (settings[channel.info.id]) {
+      await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Hello world!`));
     }
-  });
-
-  res.json({});
+  }
 });
 ```
 
@@ -112,19 +98,15 @@ server.post("/api/notify/configured", async (req, res) => {
 
 Sample usage:
 ```ts
-server.post("/api/notify/reply", async (req, res) => {
-  await teamsfxBot.forEachSubscribers(async subscriber => {
-    const channels = await subscriber.channels;
-    const channel = channels.find(c => c.info.name === "Test");
-    if (channel) {
-      // send notification as a new conversation.
-      const messageId = await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Ping`));
+await teamsfxBot.forEachSubscribers(async subscriber => {
+  const channels = await subscriber.channels;
+  const channel = channels.find(c => c.info.name === "Test");
+  if (channel) {
+    // send notification as a new conversation.
+    const messageId = await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Ping`));
 
-      // send notification as a reply to an existing conversation.
-      await teamsfxBot.replyConversation(channel, messageId, MessageFactory.text(`Pong`));
-    }
-  });
-
-  res.json({});
+    // send notification as a reply to an existing conversation.
+    await teamsfxBot.replyConversation(channel, messageId, MessageFactory.text(`Pong`));
+  }
 });
 ```
