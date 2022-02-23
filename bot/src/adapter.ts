@@ -4,7 +4,7 @@ import { BotFrameworkAdapter, TeamsActivityHandler, TurnContext } from "botbuild
 import { server } from "./server";
 
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
-export const adapter = new BotFrameworkAdapter({
+const adapter = new BotFrameworkAdapter({
     appId: process.env.BOT_ID,
     appPassword: process.env.BOT_PASSWORD,
 });
@@ -37,3 +37,5 @@ server.post("/api/messages", async (req, res) => {
         await handler.run(context);
     });
 });
+
+export { adapter };
