@@ -7,7 +7,7 @@
                 "validate local prerequisites",
                 "start ngrok",
                 "prepare local environment",
-                "Start All"
+                "Start Bot"
             ],
             "dependsOrder": "sequence"
         },
@@ -32,15 +32,39 @@
             }
         },
         {
-            "label": "Start All",
-            "dependsOn": [
-                "Start Bot"
-            ]
-        },
-        {
             "label": "Start Bot",
             "type": "shell",
             "command": "npm run dev:teamsfx",
+            "isBackground": true,
+            "problemMatcher": "$teamsfx-backend-watch",
+            "options": {
+                "cwd": "${workspaceFolder}/bot",
+                "env": {
+                    "PATH": "${env:PATH}${command:fx-extension.get-func-path}"
+                }
+            },
+            "dependsOn": [
+                "Watch Bot",
+                "Start Azurite Emulator"
+            ]
+        },
+        {
+            "label": "Watch Bot",
+            "type": "shell",
+            "command": "npm run watch:teamsfx",
+            "isBackground": true,
+            "problemMatcher": "$tsc-watch",
+            "options": {
+                "cwd": "${workspaceFolder}/bot"
+            },
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "Start Azurite Emulator",
+            "type": "shell",
+            "command": "npm run dev:teamsfx:prepare-storage",
             "isBackground": true,
             "problemMatcher": {
                 "pattern": [
@@ -48,17 +72,20 @@
                         "regexp": "^.*$",
                         "file": 0,
                         "location": 1,
-                        "message": 2
+                        "message": 2,
                     }
                 ],
                 "background": {
                     "activeOnStart": true,
-                    "beginsPattern": "[nodemon] starting",
-                    "endsPattern": "restify listening to|Bot/ME service listening at|[nodemon] app crashed"
+                    "beginsPattern": "Azurite",
+                    "endsPattern": "successfully listening"
                 }
             },
             "options": {
                 "cwd": "${workspaceFolder}/bot"
+            },
+            "presentation": {
+                "reveal": "silent"
             }
         }
     ]
