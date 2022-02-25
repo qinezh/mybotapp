@@ -8,7 +8,7 @@
       "methods": [
         "post"
       ],
-      "route": "messages"
+      "route": "api/messages"
     },
     {
       "type": "http",
@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/teamsBot.js"
+  "scriptFile": "../dist/messageHandler.js"
 }
