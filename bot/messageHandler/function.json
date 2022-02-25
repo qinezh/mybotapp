@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/teamsBot.js"
+  "scriptFile": "../dist/messageHandler.js"
 }
