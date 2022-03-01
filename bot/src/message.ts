@@ -1,6 +1,6 @@
 import { Activity, CardFactory } from "botbuilder";
 import { AdaptiveCards } from "@microsoft/adaptivecards-tools";
-import messageTemplate from "./message.template.json";
+import notificationTemplate from "./adaptiveCards/notification-default.json";
 
 /**
  * Adaptive card data model
@@ -23,7 +23,7 @@ export function buildBotMessage(getCardData: () => CardData): Partial<Activity> 
   return {
     attachments: [
       CardFactory.adaptiveCard(
-        AdaptiveCards.declare<CardData>(messageTemplate).render(cardData)
+        AdaptiveCards.declare<CardData>(notificationTemplate).render(cardData)
       )
     ]
   };

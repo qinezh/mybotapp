@@ -7,7 +7,8 @@
       "type": "TextBlock",
       "text": "${title}",
       "size": "Large",
-      "weight": "Bolder"
+      "weight": "Bolder",
+      "wrap": true
     },
     {
       "type": "TextBlock",
@@ -22,8 +23,25 @@
       "type": "TextBlock",
       "text": "${description}",
       "isSubtle": true,
-      "wrap": true,
-      "maxLines": 3
+      "wrap": true
+    },
+    {
+      "$data": "${factSet}",
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Prop1:",
+          "value": "[${property1}](${property1})"
+        },
+        {
+          "title": "Prop2:",
+          "value": "${property2}"
+        },
+        {
+          "title": "Prop3:",
+          "value": "${property3}"
+        }
+      ]
     }
   ],
   "actions": [
