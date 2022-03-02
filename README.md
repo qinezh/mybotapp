@@ -7,8 +7,8 @@ Install the latest version of VS Code extension [Teams Toolkit](https://marketpl
 ## Basic Usage
 
 ```ts
-await teamsfxBot.forEachInstallation(async installation => {
-  await teamsfxBot.notifyInstallation(installation, MessageFactory.text(`Hello world!`));
+await teamsfxBot.forEachAppInstallation(async appInstallation => {
+  await teamsfxBot.notifyAppInstallation(appInstallation, MessageFactory.text(`Hello world!`));
 });
 ```
 
@@ -16,7 +16,7 @@ Check [index.ts](bot/src/index.ts) for more details.
 
 ## Options to create TeamsFx Bot
 
-- `storage`: specify the storage to save installations info, by default it's local file storage, and you could use Azure Blob instead.
+- `storage`: specify the storage to save app installations info, by default it's local file storage, and you could use Azure Blob instead.
 - `welcomeMessage`: setup welcome message once bot is install.
 - `appSettingsProvider`: Setup notification settings.
 
@@ -24,7 +24,7 @@ Sample usage:
 ```ts
 // create TeamsFx Bot with options. 
 const teamsfxBot = new TeamsFxBot(adapter, {
-  // You could also use Azure Blob storage to save installations info.
+  // You could also use Azure Blob storage to save app installations info.
   storage: new BlobsStorage(process.env.blobConnectionString, process.env.blobContainerName),
   welcomeMessage: {
     message: MessageFactory.text("Hello, this is notification bot created by TeamsFx.")
@@ -43,8 +43,8 @@ Scheduled job to send notification to the default place (Teams/Group Chat/Person
 Sample usage:
 ```ts
 setInterval(async () => {
-  await teamsfxBot.forEachInstallation(async installation => {
-    await teamsfxBot.notifyInstallation(installation, MessageFactory.text(`Hello world! (this is a scheduled notification.)`));
+  await teamsfxBot.forEachAppInstallation(async appInstallation => {
+    await teamsfxBot.notifyAppInstallation(appInstallation, MessageFactory.text(`Hello world! (this is a scheduled notification.)`));
   });
 }, 30 * 1000); // every 30 seconds
 
@@ -54,8 +54,8 @@ setInterval(async () => {
 
 Sample usage:
 ```ts
-await teamsfxBot.forEachInstallation(async installation => {
-  for (const member of await installation.members) {
+await teamsfxBot.forEachAppInstallation(async appInstallation => {
+  for (const member of await appInstallation.members) {
     await teamsfxBot.notifyMember(member, MessageFactory.text(`Hello ${member.account.name}!`));
   }
 });
@@ -65,8 +65,8 @@ await teamsfxBot.forEachInstallation(async installation => {
 
 Sample usage:
 ```ts
-await teamsfxBot.forEachInstallation(async installation => {
-  for (const channel of await installation.channels) {
+await teamsfxBot.forEachAppInstallation(async appInstallation => {
+  for (const channel of await appInstallation.channels) {
     switch (channel.info.name) {
       case "Test":
         await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Hello world!`));
@@ -83,9 +83,9 @@ Type bot command `settings` in Teams to select the channels that needs to be not
 
 Sample usage:
 ```ts
-await teamsfxBot.forEachInstallation(async installation => {
-  const settings = await installation.settings;
-  for (const channel of await installation.channels) {
+await teamsfxBot.forEachAppInstallation(async appInstallation => {
+  const settings = await appInstallation.settings;
+  for (const channel of await appInstallation.channels) {
     // check if the channel is enabled.
     if (settings[channel.info.id]) {
       await teamsfxBot.notifyChannel(channel, MessageFactory.text(`Hello world!`));
@@ -98,8 +98,8 @@ await teamsfxBot.forEachInstallation(async installation => {
 
 Sample usage:
 ```ts
-await teamsfxBot.forEachInstallation(async installation => {
-  const channels = await installation.channels;
+await teamsfxBot.forEachAppInstallation(async appInstallation => {
+  const channels = await appInstallation.channels;
   const channel = channels.find(c => c.info.name === "Test");
   if (channel) {
     // send notification as a new conversation.

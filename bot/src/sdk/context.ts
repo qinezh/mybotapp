@@ -21,7 +21,7 @@ export class TeamsFxBotContext implements BotContext {
             const teamsfxMembers: TeamsFxMember[] = [];
             for (const member of teamsMembers) {
                 teamsfxMembers.push({
-                    installation: this,
+                    appInstallation: this,
                     account: member
                 })
             }
@@ -33,7 +33,7 @@ export class TeamsFxBotContext implements BotContext {
     public get channels(): Promise<TeamsFxChannel[]> {
         return (async () => {
             const teamsfxChannels: TeamsFxChannel[] = [];
-            const teamId = Utils.getInstallationId(this.turnContext);
+            const teamId = Utils.getAppInstallationId(this.turnContext);
             if (!teamId) {
                 return teamsfxChannels;
             }
@@ -41,7 +41,7 @@ export class TeamsFxBotContext implements BotContext {
             const teamsChannels = await TeamsInfo.getTeamChannels(this.turnContext, teamId);
             for (const channel of teamsChannels) {
                 teamsfxChannels.push({
-                    installation: this,
+                    appInstallation: this,
                     info: channel
                 })
             }
@@ -51,9 +51,9 @@ export class TeamsFxBotContext implements BotContext {
     }
 
     public get settings(): Promise<TeamsFxBotSettings> {
-        const installationId = Utils.getInstallationId(this.turnContext);
+        const appInstallationId = Utils.getAppInstallationId(this.turnContext);
         return (async () => {
-            return await this.settingsStore.get(installationId);
+            return await this.settingsStore.get(appInstallationId);
         })();
     }
 }

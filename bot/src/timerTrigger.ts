@@ -15,8 +15,8 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
     }
   });
 
-  await teamsfxBot.forEachInstallation(async installation => {
-    await teamsfxBot.notifyInstallation(installation, message);
+  await teamsfxBot.forEachAppInstallation(async appInstallation => {
+    await teamsfxBot.notifyAppInstallation(appInstallation, message);
   });
 };
 
