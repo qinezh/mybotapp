@@ -1,19 +1,18 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
-import { AdaptiveCards } from "@microsoft/adaptivecards-tools";
-import { Activity, CardFactory } from "botbuilder";
+import { Activity } from "botbuilder";
 import { teamsfxBot } from "./global";
-import messageTemplate from "./message.template.json";
+import { buildBotMessage } from "./message";
 
 // HTTP trigger to send notification.
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  const message: Partial<Activity> = {
-    attachments: [
-      CardFactory.adaptiveCard(AdaptiveCards.declare(messageTemplate).render({
-        title: "Notification Test",
-        message: `This is an http notification from TeamsFx bot. ${req.body?.content}`
-      }))
-    ]
-  };
+  const message: Partial<Activity> = buildBotMessage(() => {
+    return {
+      title: "New Event Occurred!",
+      appName: "Contoso App Notification",
+      description: "Detailed description of what happened so the user knows what's going on.",
+      notificationUrl: "https://www.adaptivecards.io/"
+    }
+  });
 
   await teamsfxBot.forEachInstallation(async installation => {
     await teamsfxBot.notifyInstallation(installation, message);
