@@ -15,8 +15,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     ]
   };
 
-  await teamsfxBot.forEachSubscribers(async subscriber => {
-    await teamsfxBot.notifySubscriber(subscriber, message);
+  await teamsfxBot.forEachInstallation(async installation => {
+    await teamsfxBot.notifyInstallation(installation, message);
   });
 
   context.res = {};

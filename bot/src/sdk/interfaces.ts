@@ -42,12 +42,12 @@ export abstract class BasicTeamsFxBotSettingsProvider implements TeamsFxBotSetti
 export type TeamsFxBotSettings = { [key: string]: any };
 
 export interface TeamsFxMember {
-    subscriber: BotContext,
+    installation: BotContext,
     account: TeamsChannelAccount
 }
 
 export interface TeamsFxChannel {
-    subscriber: BotContext,
+    installation: BotContext,
     info: ChannelInfo
 }
 

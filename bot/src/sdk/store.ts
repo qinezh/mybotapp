@@ -49,23 +49,23 @@ export class BotSettingsStore {
         this.storageKey = storageKey
     }
 
-    public async get(subscriberId: string): Promise<TeamsFxBotSettings> {
+    public async get(installationId: string): Promise<TeamsFxBotSettings> {
         const items = await this.storage.read([this.storageKey]);
-        if (items[this.storageKey] === undefined || items[this.storageKey][subscriberId] === undefined) {
+        if (items[this.storageKey] === undefined || items[this.storageKey][installationId] === undefined) {
             return {};
         }
 
-        return items[this.storageKey][subscriberId];
+        return items[this.storageKey][installationId];
     }
 
-    public async set(subscriberId: string, settings: TeamsFxBotSettings): Promise<void> {
+    public async set(installationId: string, settings: TeamsFxBotSettings): Promise<void> {
         const items = await this.storage.read([this.storageKey]);
         if (!items[this.storageKey]) {
             items[this.storageKey] = {
-                [subscriberId]: settings
+                [installationId]: settings
             };
         } else {
-            items[this.storageKey][subscriberId] = settings;
+            items[this.storageKey][installationId] = settings;
         }
 
         await this.storage.write({ [this.storageKey]: items[this.storageKey] })

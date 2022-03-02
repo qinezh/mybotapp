@@ -21,7 +21,7 @@ export class TeamsFxBot {
     private readonly conversationReferenceStore: ConversationReferenceStore;
     private readonly settingsStore: BotSettingsStore;
     private readonly adapter: BotFrameworkAdapter;
-    private readonly conversationReferenceStoreKey = "teamfx-subscribers";
+    private readonly conversationReferenceStoreKey = "teamfx-installations";
     private readonly settingsStoreKey = "teamsfx-settings";
     private readonly fileName = ".teamsfx.bot.json";
 
@@ -37,7 +37,7 @@ export class TeamsFxBot {
         }));
     }
 
-    public async forEachSubscribers(action: (subscriber: TeamsFxBotContext) => Promise<void>): Promise<void> {
+    public async forEachInstallation(action: (installation: TeamsFxBotContext) => Promise<void>): Promise<void> {
         const references = await this.conversationReferenceStore.list();
         for (const reference of references)
             await this.adapter.continueConversation(reference, async (context: TurnContext) => {
@@ -45,19 +45,19 @@ export class TeamsFxBot {
             });
     }
 
-    public async notifySubscriber(subscriber: TeamsFxBotContext, activity: Partial<Activity>): Promise<void> {
-        await subscriber.turnContext.sendActivity(activity);
+    public async notifyInstallation(installation: TeamsFxBotContext, activity: Partial<Activity>): Promise<void> {
+        await installation.turnContext.sendActivity(activity);
     }
 
     public async notifyMember(member: TeamsFxMember, activity: Partial<Activity>): Promise<void> {
-        const reference = TurnContext.getConversationReference(member.subscriber.turnContext.activity);
+        const reference = TurnContext.getConversationReference(member.installation.turnContext.activity);
         const personalConversation = this.cloneConversation(reference);
 
-        const connectorClient: ConnectorClient = member.subscriber.turnContext.turnState.get(this.adapter.ConnectorClientKey);
+        const connectorClient: ConnectorClient = member.installation.turnContext.turnState.get(this.adapter.ConnectorClientKey);
         const conversation = await connectorClient.conversations.createConversation({
             isGroup: false,
-            tenantId: member.subscriber.turnContext.activity.conversation.tenantId,
-            bot: member.subscriber.turnContext.activity.recipient,
+            tenantId: member.installation.turnContext.activity.conversation.tenantId,
+            bot: member.installation.turnContext.activity.recipient,
             members: [member.account],
             activity: undefined,
             channelData: {},
@@ -70,7 +70,7 @@ export class TeamsFxBot {
     }
 
     public async notifyChannel(channel: TeamsFxChannel, activity: Partial<Activity>): Promise<string> {
-        const reference = TurnContext.getConversationReference(channel.subscriber.turnContext.activity);
+        const reference = TurnContext.getConversationReference(channel.installation.turnContext.activity);
         const channelConversation = this.cloneConversation(reference);
         channelConversation.conversation.id = channel.info.id;
 
@@ -84,7 +84,7 @@ export class TeamsFxBot {
     }
 
     public async replyConversation(channel: TeamsFxChannel, messageId: string, activity: Partial<Activity>): Promise<void> {
-        const reference = TurnContext.getConversationReference(channel.subscriber.turnContext.activity);
+        const reference = TurnContext.getConversationReference(channel.installation.turnContext.activity);
         const replayConversation = this.cloneConversation(reference);
         replayConversation.conversation.id = channel.info.id + `;messageid=${messageId}`;
 

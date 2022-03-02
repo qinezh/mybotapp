@@ -53,12 +53,12 @@ export class TeamsFxMiddleware implements Middleware {
                 await context.sendActivity(this.welcomeMessage.message);
                 break;
             case ActivityType.SettingsCardSubmitted:
-                const subscriberId = Utils.getSubscriberId(context);
+                const installationId = Utils.getInstallationId(context);
                 const settings = await this.settingsProvider.handleCardSubmit(
                     new TeamsFxBotContext(context, this.settingsStore),
                     context.activity.value
                 );
-                this.settingsStore.set(subscriberId, settings);
+                this.settingsStore.set(installationId, settings);
                 break;
             case ActivityType.SettingCommandReceived:
                 const card = await this.settingsProvider.sendSettingsCard(new TeamsFxBotContext(context, this.settingsStore));
