@@ -1,4 +1,4 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions"
+import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { TeamsActivityHandler } from "botbuilder";
 import { adapter } from "./global";
 
