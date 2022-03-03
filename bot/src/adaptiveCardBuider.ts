@@ -3,7 +3,7 @@ import { AdaptiveCards } from "@microsoft/adaptivecards-tools";
 import notificationTemplate from "./adaptiveCards/notification-default.json";
 
 /**
- * Adaptive card data model
+ * Adaptive card data model bound to the card template.
  */
 export interface CardData {
   title: string,
@@ -13,17 +13,16 @@ export interface CardData {
 }
 
 /**
- * Utility method to comvert the message data to adaptive card
+ * Utility method to convert the message data to adaptive card
+ * @param getCardData Function to prepare your card data.
+ * @returns A bot activity object attached with adaptive card.
  */
 export function buildBotMessage(getCardData: () => CardData): Partial<Activity> {
-  // Get notification raw data
-  const cardData = getCardData();
-
   // Wrap the message in adaptive card
   return {
     attachments: [
       CardFactory.adaptiveCard(
-        AdaptiveCards.declare<CardData>(notificationTemplate).render(cardData)
+        AdaptiveCards.declare<CardData>(notificationTemplate).render(getCardData())
       )
     ]
   };

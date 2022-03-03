@@ -9,7 +9,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     return {
       title: "New Event Occurred!",
       appName: "Contoso App Notification",
-      description: "Detailed description of what happened so the user knows what's going on.",
+      description: "This is a sample http-triggered notification",
       notificationUrl: "https://www.adaptivecards.io/"
     }
   });
