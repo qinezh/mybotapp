@@ -12,7 +12,7 @@ await teamsfxBot.forEachAppInstallation(async appInstallation => {
 });
 ```
 
-Check [index.ts](bot/src/index.ts) for more details.
+Check [httpTrigger.ts](bot/src/httpTrigger.ts) or [timerTrigger.ts](bot/src/timerTrigger.ts) for more details.
 
 ## Options to create TeamsFx Bot
 
