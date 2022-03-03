@@ -1,7 +1,7 @@
-import { AzureFunction, Context } from "@azure/functions"
+import { AzureFunction, Context } from "@azure/functions";
 import { Activity } from "botbuilder";
 import { teamsfxBot } from "./global";
-import { buildBotMessage } from "./message";
+import { buildBotMessage } from "./adaptiveCardBuider";
 
 // Time trigger to send notification. You can change the schedule in ../timerNotifyTrigger/function.json
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
@@ -10,7 +10,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
     return {
       title: "New Event Occurred!",
       appName: "Contoso App Notification",
-      description: "Detailed description of what happened so the user knows what's going on. (${timeStamp})",
+      description: `Detailed description of what happened so the user knows what's going on. (${timeStamp})`,
       notificationUrl: "https://www.adaptivecards.io/"
     }
   });

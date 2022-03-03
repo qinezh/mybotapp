@@ -1,7 +1,7 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions"
+import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { Activity } from "botbuilder";
 import { teamsfxBot } from "./global";
-import { buildBotMessage } from "./message";
+import { buildBotMessage } from "./adaptiveCardBuider";
 
 // HTTP trigger to send notification.
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
