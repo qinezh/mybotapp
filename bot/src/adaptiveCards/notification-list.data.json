@@ -1,0 +1,20 @@
+{
+  "title": "New Event Occurred!",
+  "appName": "Contoso App",
+  "description": "Detailed description of what happened so the user knows what's going on.",
+  "notificationUrl": "https://www.adaptivecards.io/",
+  "data": [
+    {
+      "value": "list item 1"
+    },
+    {
+      "value": "list item 2"
+    },
+    {
+      "value": "list item 3"
+    },
+    {
+      "value": "list item 4"
+    }
+  ]
+}
