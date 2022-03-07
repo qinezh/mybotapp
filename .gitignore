@@ -8,3 +8,4 @@ node_modules
 subscriptionInfo.json
 build
 .teamsfx.bot.json
+_storage_emulator

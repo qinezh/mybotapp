@@ -3,30 +3,28 @@ import * as cron from "node-cron";
 import { TeamsFxBot } from "./sdk/bot";
 import { adapter } from "./adapter";
 import { server } from "./server";
-import { buildBotMessage, CardData } from "./message";
+import { buildBotMessage, buildBotMessageWithList, CardData, CardDataWithList } from "./adaptiveCardBuilder";
 
 /**
  * This method is customized by userd to retrirve the notification data and transform to the CardData model.
  * @returns a card data object
  */
-function getCardData(): CardData {
-  // This is just to mock the notification data retrieval
-  const rawData = {
-    title: "New Event Occurred!", 
-    description: "Detailed description of what happened so the user knows what's going on.",
-    url : "https://www.adaptivecards.io/",
-  };
-
-  // A default transformer to transform the original notification data to card data model.
+function getCardDataWithList(): CardDataWithList {
+  // This is just to mock the notification data retrieval and transform
   return {
-    title: rawData.title,
+    title: "New Event Occurred!",
     appName: "Contoso App Notification",
-    description: rawData.description,
-    notificationUrl: rawData.url
+    description: "Detailed description of what happened so the user knows what's going on.",
+    notificationUrl: "https://www.adaptivecards.io/",
+    data: [
+      "List Item 1",
+      "List Item 2",
+      "List Item 3"
+    ]
   }
 }
 
-const message: Partial<Activity> = buildBotMessage(getCardData);
+const message: Partial<Activity> = buildBotMessageWithList(getCardDataWithList);
 
 const teamsfxBot = new TeamsFxBot(adapter);
 
