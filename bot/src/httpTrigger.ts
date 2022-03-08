@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { Activity } from "botbuilder";
-import { teamsfxBot } from "./global";
+import { teamsfxBot } from "./.initialize";
 import { buildBotMessage } from "./adaptiveCardBuider";
 
 // HTTP trigger to send notification.
@@ -14,7 +14,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
   });
 
-  await teamsfxBot.forEachAppInstallation(async appInstallation => teamsfxBot.notifyAppInstallation(appInstallation, message));
+  await teamsfxBot.forEachAppInstallation(async appInstallation =>
+    {
+      teamsfxBot.notifyAppInstallation(appInstallation, message);
+      const members = await appInstallation.members;
+      for (const member of members) {
+        await teamsfxBot.notifyMember(member, message);
+      }
+    } 
+    
+  );
+
+  // try
+  await notify({
+    target: AppInstallation | Channel | Member
+  }, message);
 
   context.res = {};
 };

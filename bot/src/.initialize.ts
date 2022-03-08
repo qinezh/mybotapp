@@ -1,3 +1,5 @@
+// try better naming to hide for user
+
 import { BotFrameworkAdapter, TurnContext } from "botbuilder";
 import { TeamsFxBot } from "./sdk/bot";
 

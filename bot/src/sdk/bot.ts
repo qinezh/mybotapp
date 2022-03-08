@@ -83,6 +83,7 @@ export class TeamsFxBot {
         return messageId;
     }
 
+    // ignore
     public async replyConversation(channel: TeamsFxChannel, messageId: string, activity: Partial<Activity>): Promise<void> {
         const reference = TurnContext.getConversationReference(channel.appInstallation.turnContext.activity);
         const replayConversation = this.cloneConversation(reference);
