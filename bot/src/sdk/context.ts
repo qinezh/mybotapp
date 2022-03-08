@@ -1,59 +1,66 @@
-import { TurnContext, TeamsInfo } from "botbuilder";
-import { BotContext, TeamsFxMember, TeamsFxChannel, TeamsFxBotSettings } from "./interfaces";
-import { BotSettingsStore } from "./store";
-import { Utils } from "./utils";
+import { ChannelInfo, TeamsChannelAccount, TeamsInfo, TurnContext } from "botbuilder";
 
-export class TeamsFxBotContext implements BotContext {
-    public turnContext: TurnContext;
-    private settingsStore: BotSettingsStore;
+export type TargetType = "Channel" | "Group" | "Person";
+
+export class Member {
+    public readonly type: TargetType = "Person";
+    public notificationTarget: NotificationTarget;
+    public account: TeamsChannelAccount;
+}
+
+export class Channel {
+    public readonly type: TargetType = "Channel";
+    public notificationTarget: NotificationTarget;
+    public info: ChannelInfo;
+}
+
+export class NotificationTarget {
+    public readonly turnContext: TurnContext;
+    public readonly type?: TargetType;
 
     constructor(
         turnContext: TurnContext,
-        settingsStore: BotSettingsStore
+        type?: TargetType,
     ) {
         this.turnContext = turnContext;
-        this.settingsStore = settingsStore;
+        this.type = type;
     }
 
-    public get members(): Promise<TeamsFxMember[]> {
-        return (async () => {
-            const teamsMembers = await TeamsInfo.getMembers(this.turnContext);
-            const teamsfxMembers: TeamsFxMember[] = [];
-            for (const member of teamsMembers) {
-                teamsfxMembers.push({
-                    appInstallation: this,
-                    account: member
-                })
-            }
+    public async members(): Promise<Member[]> {
+        const teamsMembers = await TeamsInfo.getMembers(this.turnContext);
+        const members: Member[] = [];
+        for (const member of teamsMembers) {
+            members.push({
+                type: "Person",
+                notificationTarget: this,
+                account: member,
+            })
+        }
 
-            return teamsfxMembers;
-        })();
+        return members;
     }
 
-    public get channels(): Promise<TeamsFxChannel[]> {
-        return (async () => {
-            const teamsfxChannels: TeamsFxChannel[] = [];
-            const teamId = Utils.getAppInstallationId(this.turnContext);
-            if (!teamId) {
-                return teamsfxChannels;
-            }
+    public async channels(): Promise<Channel[]> {
+        const channels: Channel[] = [];
+        const teamId = NotificationTarget.getNotificationTargeId(this.turnContext);
+        if (!teamId) {
+            return channels;
+        }
 
-            const teamsChannels = await TeamsInfo.getTeamChannels(this.turnContext, teamId);
-            for (const channel of teamsChannels) {
-                teamsfxChannels.push({
-                    appInstallation: this,
-                    info: channel
-                })
-            }
+        const teamsChannels = await TeamsInfo.getTeamChannels(this.turnContext, teamId);
+        for (const channel of teamsChannels) {
+            channels.push({
+                type: "Channel",
+                notificationTarget: this,
+                info: channel,
+            })
+        }
 
-            return teamsfxChannels;
-        })();
+        return channels;
     }
 
-    public get settings(): Promise<TeamsFxBotSettings> {
-        const appInstallationId = Utils.getAppInstallationId(this.turnContext);
-        return (async () => {
-            return await this.settingsStore.get(appInstallationId);
-        })();
+    private static getNotificationTargeId(context: TurnContext): string {
+        return context.activity?.channelData?.team?.id
+            ?? context.activity.conversation.id;
     }
 }

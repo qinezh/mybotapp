@@ -1,12 +1,8 @@
 import { Storage, StoreItems } from "botbuilder";
 import * as fse from "fs-extra";
 
-export class FileStorage implements Storage {
-    private readonly filePath: string;
-
-    constructor(filePath: string) {
-        this.filePath = filePath;
-    }
+export class LocalFileStorage implements Storage {
+    private readonly filePath = ".notification.localstore.json";
 
     async read(keys: string[]): Promise<StoreItems> {
         if (!await fse.pathExists(this.filePath)) {

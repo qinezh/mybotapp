@@ -1,41 +1,20 @@
-import { Activity, CardFactory, Middleware, TurnContext } from "botbuilder";
-import { TeamsFxBotContext } from "./context";
-import { WelcomeMessage, TeamsFxBotSettingsProvider, WelcomeMessageTrigger } from "./interfaces";
-import { BotSettingsStore, ConversationReferenceStore } from "./store";
-import { Utils } from "./utils";
+import { Activity, Middleware, TurnContext } from "botbuilder";
+import { ConversationReferenceStore } from "./store";
 
-export interface TeamsFxMiddlewareOptions {
-    conversationReferenceStore: ConversationReferenceStore,
-    settingsStore: BotSettingsStore;
-    welcomeMessage?: WelcomeMessage,
-    settingsProvider?: TeamsFxBotSettingsProvider
+export interface NotificationMiddlewareOptions {
+    conversationReferenceStore: ConversationReferenceStore;
 }
 
 enum ActivityType {
     CurrentBotAdded,
-    NewMemberAdded,
-    SettingsCardSubmitted,
-    SettingCommandReceived,
     Unknown
 }
 
-export class TeamsFxMiddleware implements Middleware {
+export class NotificationMiddleware implements Middleware {
     private readonly conversationReferenceStore: ConversationReferenceStore;
-    private readonly settingsStore: BotSettingsStore;
-    private readonly welcomeMessage: WelcomeMessage | undefined;
-    private readonly settingsProvider: TeamsFxBotSettingsProvider | undefined;
 
-    constructor(options: TeamsFxMiddlewareOptions) {
+    constructor(options: NotificationMiddlewareOptions) {
         this.conversationReferenceStore = options.conversationReferenceStore;
-        this.settingsStore = options.settingsStore;
-        if (options.welcomeMessage) {
-            this.welcomeMessage = options.welcomeMessage;
-            this.welcomeMessage.trigger = options.welcomeMessage?.trigger ?? WelcomeMessageTrigger.BotInstall;
-        }
-
-        if (options.settingsProvider) {
-            this.settingsProvider = options.settingsProvider;
-        }
     }
 
     public async onTurn(context: TurnContext, next: () => Promise<void>): Promise<void> {
@@ -44,27 +23,6 @@ export class TeamsFxMiddleware implements Middleware {
             case ActivityType.CurrentBotAdded:
                 const reference = TurnContext.getConversationReference(context.activity);
                 await this.conversationReferenceStore.add(reference);
-
-                if (this.welcomeMessage?.trigger === WelcomeMessageTrigger.BotInstall) {
-                    await context.sendActivity(this.welcomeMessage.message);
-                }
-                break;
-            case ActivityType.NewMemberAdded:
-                await context.sendActivity(this.welcomeMessage.message);
-                break;
-            case ActivityType.SettingsCardSubmitted:
-                const appInstallationId = Utils.getAppInstallationId(context);
-                const settings = await this.settingsProvider.handleCardSubmit(
-                    new TeamsFxBotContext(context, this.settingsStore),
-                    context.activity.value
-                );
-                this.settingsStore.set(appInstallationId, settings);
-                break;
-            case ActivityType.SettingCommandReceived:
-                const card = await this.settingsProvider.sendSettingsCard(new TeamsFxBotContext(context, this.settingsStore));
-                await context.sendActivity({
-                    attachments: [CardFactory.adaptiveCard(card)]
-                });
                 break;
             default:
                 break;
@@ -78,32 +36,7 @@ export class TeamsFxMiddleware implements Middleware {
             return ActivityType.CurrentBotAdded;
         }
 
-        if (this.isMembersAdded(activity)) {
-            return ActivityType.NewMemberAdded;
-        }
-
-        if (this.settingsProvider && this.isSettingsCardSubmitted(activity)) {
-            return ActivityType.SettingsCardSubmitted;
-        }
-
-        if (this.settingsProvider) {
-            let text = activity.text;
-            const removedMentionText = TurnContext.removeRecipientMention(activity);
-            if (removedMentionText) {
-                text = removedMentionText.toLowerCase().replace(/\n|\r\n/g, "").trim();
-            }
-
-            if (text === this.settingsProvider.commandName) {
-                return ActivityType.SettingCommandReceived
-            }
-        }
-
         return ActivityType.Unknown;
-    }
-
-    // current bot is excluded.
-    private isMembersAdded(activity: Partial<Activity>): boolean {
-        return activity.membersAdded?.length > 0 && !this.isBotAdded(activity);
     }
 
     private isBotAdded(activity: Partial<Activity>): boolean {
@@ -116,13 +49,5 @@ export class TeamsFxMiddleware implements Middleware {
         }
 
         return false;
-    }
-
-    private isSettingsCardSubmitted(activity: Activity): boolean {
-        if (!activity.value) {
-            return false;
-        }
-
-        return activity.value[this.settingsProvider.submitActionKey] === this.settingsProvider.submitActionValue
     }
 }

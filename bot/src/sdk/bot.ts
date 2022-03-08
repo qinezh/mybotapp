@@ -1,63 +1,83 @@
 import { BotFrameworkAdapter, ConversationReference, TurnContext, Storage, Activity } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
-import { TeamsFxBotContext } from "./context";
-import { FileStorage } from "./fileStorage";
-import { TeamsFxMember, TeamsFxChannel, WelcomeMessage, TeamsFxBotSettingsProvider } from "./interfaces";
-import { TeamsFxMiddleware } from "./middleware";
-import { BotSettingsStore, ConversationReferenceStore } from "./store";
+import { Channel, Member, NotificationTarget, TargetType } from "./context";
+import { LocalFileStorage } from "./fileStorage";
+import { NotificationMiddleware } from "./middleware";
+import { ConversationReferenceStore } from "./store";
 
-export interface TeamsFxBotOptions {
+export interface AppNotificationOptions {
     /**
-     * If `storage` is not provided, FileStorage will be used by default.
+     * If `storage` is not provided, a default LocalFileStorage will be used.
      * You could also use the `BlobsStorage` provided by botbuilder-azure-blobs
      * or `CosmosDbPartitionedStorage` provided by botbuilder-azure
      * */
     storage?: Storage,
-    welcomeMessage?: WelcomeMessage,
-    settingsProvider?: TeamsFxBotSettingsProvider
 }
 
-export class TeamsFxBot {
+export class AppNotification {
     private readonly conversationReferenceStore: ConversationReferenceStore;
-    private readonly settingsStore: BotSettingsStore;
     private readonly adapter: BotFrameworkAdapter;
-    private readonly conversationReferenceStoreKey = "teamfx-app-installations";
-    private readonly settingsStoreKey = "teamsfx-settings";
-    private readonly fileName = ".teamsfx.bot.json";
+    private readonly conversationReferenceStoreKey = "teamfx-notification-targets";
 
-    constructor(adapter: BotFrameworkAdapter, options?: TeamsFxBotOptions) {
-        const storage = options?.storage ?? new FileStorage(this.fileName);
+    constructor(connector: BotFrameworkAdapter, options?: AppNotificationOptions) {
+        const storage = options?.storage ?? new LocalFileStorage();
         this.conversationReferenceStore = new ConversationReferenceStore(storage, this.conversationReferenceStoreKey);
-        this.settingsStore = new BotSettingsStore(storage, this.settingsStoreKey);
-        this.adapter = adapter.use(new TeamsFxMiddleware({
+        this.adapter = connector.use(new NotificationMiddleware({
             conversationReferenceStore: this.conversationReferenceStore,
-            settingsStore: this.settingsStore,
-            welcomeMessage: options?.welcomeMessage,
-            settingsProvider: options?.settingsProvider
         }));
     }
 
-    public async forEachAppInstallation(action: (appInstallation: TeamsFxBotContext) => Promise<void>): Promise<void> {
+    public async forEachNotificationTarget(action: (target: NotificationTarget) => Promise<void>): Promise<void> {
         const references = await this.conversationReferenceStore.list();
-        for (const reference of references)
+        for (const reference of references) {
+            const targetType = this.getTargetType(reference);
             await this.adapter.continueConversation(reference, async (context: TurnContext) => {
-                await action(new TeamsFxBotContext(context, this.settingsStore));
+                await action(new NotificationTarget(context, targetType));
             });
+        }
     }
 
-    public async notifyAppInstallation(appInstallation: TeamsFxBotContext, activity: Partial<Activity>): Promise<void> {
-        await appInstallation.turnContext.sendActivity(activity);
+    public async notify(activityOrText: string | Partial<Activity>, target: NotificationTarget | Member | Channel): Promise<void> {
+        if (target instanceof NotificationTarget) {
+            await target.turnContext.sendActivity(activityOrText);
+        } else if (target instanceof Member) {
+            await this.notifyMember(activityOrText, target);
+        } else if (target instanceof Channel) {
+            await this.notifyChannel(activityOrText, target);
+        } else {
+            throw new Error("target is none of NotificationTarget|Member|Channel");
+        }
     }
 
-    public async notifyMember(member: TeamsFxMember, activity: Partial<Activity>): Promise<void> {
-        const reference = TurnContext.getConversationReference(member.appInstallation.turnContext.activity);
+    public async notifyAll(activityOrText: string | Partial<Activity>, options?: { scope: "Default" | "Member" | "Channel" }): Promise<void> {
+        if (options === undefined || options.scope === "Default") {
+            await this.forEachNotificationTarget(async target => await this.notify(activityOrText, target));
+        } else if (options.scope === "Member") {
+            await this.forEachNotificationTarget(async target => {
+                const members = await target.members();
+                for (const member of members) {
+                    await this.notifyMember(activityOrText, member);
+                }
+            });
+        } else if (options.scope === "Channel") {
+            await this.forEachNotificationTarget(async target => {
+                const channels = await target.channels();
+                for (const channel of channels) {
+                    await this.notifyChannel(activityOrText, channel);
+                }
+            });
+        }
+    }
+
+    private async notifyMember(activityOrText: string | Partial<Activity>, member: Member): Promise<void> {
+        const reference = TurnContext.getConversationReference(member.notificationTarget.turnContext.activity);
         const personalConversation = this.cloneConversation(reference);
 
-        const connectorClient: ConnectorClient = member.appInstallation.turnContext.turnState.get(this.adapter.ConnectorClientKey);
+        const connectorClient: ConnectorClient = member.notificationTarget.turnContext.turnState.get(this.adapter.ConnectorClientKey);
         const conversation = await connectorClient.conversations.createConversation({
             isGroup: false,
-            tenantId: member.appInstallation.turnContext.activity.conversation.tenantId,
-            bot: member.appInstallation.turnContext.activity.recipient,
+            tenantId: member.notificationTarget.turnContext.activity.conversation.tenantId,
+            bot: member.notificationTarget.turnContext.activity.recipient,
             members: [member.account],
             activity: undefined,
             channelData: {},
@@ -65,40 +85,34 @@ export class TeamsFxBot {
         personalConversation.conversation.id = conversation.id;
 
         await this.adapter.continueConversation(personalConversation, async (context: TurnContext) => {
-            await context.sendActivity(activity);
+            await context.sendActivity(activityOrText);
         });
     }
 
-    public async notifyChannel(channel: TeamsFxChannel, activity: Partial<Activity>): Promise<string> {
-        const reference = TurnContext.getConversationReference(channel.appInstallation.turnContext.activity);
+    private async notifyChannel(activityOrText: string | Partial<Activity>, channel: Channel): Promise<void> {
+        const reference = TurnContext.getConversationReference(channel.notificationTarget.turnContext.activity);
         const channelConversation = this.cloneConversation(reference);
         channelConversation.conversation.id = channel.info.id;
 
-        let messageId = "";
         await this.adapter.continueConversation(channelConversation, async (context: TurnContext) => {
-            const response = await context.sendActivity(activity);
-            messageId = response.id;
-        });
-
-        return messageId;
-    }
-
-    // ignore
-    public async replyConversation(channel: TeamsFxChannel, messageId: string, activity: Partial<Activity>): Promise<void> {
-        const reference = TurnContext.getConversationReference(channel.appInstallation.turnContext.activity);
-        const replayConversation = this.cloneConversation(reference);
-        replayConversation.conversation.id = channel.info.id + `;messageid=${messageId}`;
-
-        await this.adapter.continueConversation(replayConversation, async (context: TurnContext) => {
-            try {
-                await context.sendActivity(activity);
-            } catch (err) {
-                console.log(err);
-            }
+            const response = await context.sendActivity(activityOrText);
         });
     }
 
     private cloneConversation(conversation: Partial<ConversationReference>): ConversationReference {
         return Object.assign(<ConversationReference>{}, conversation);
+    }
+
+    private getTargetType(conversationReference: Partial<ConversationReference>): TargetType | undefined {
+        const conversationType = conversationReference.conversation?.conversationType;
+        if (conversationType === "personal") {
+            return "Person";
+        } else if (conversationType === "groupChat") {
+            return "Group";
+        } else if (conversationType === "channel") {
+            return "Channel";
+        } else {
+            return undefined;
+        }
     }
 }

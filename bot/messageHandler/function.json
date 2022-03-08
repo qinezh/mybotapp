@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/messageHandler.js"
+  "scriptFile": "../dist/internal/messageHandler.js"
 }
