@@ -1,0 +1,12 @@
+# TypeScript output
+dist
+lib
+out
+
+# Dependency directories
+node_modules
+
+# misc
+.DS_Store
+.deployment
+.env
