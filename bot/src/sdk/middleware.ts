@@ -1,5 +1,5 @@
 import { Activity, ActivityTypes, INVOKE_RESPONSE_KEY, Middleware, TurnContext } from "botbuilder";
-import { TeamsFxCommandHandler } from "./conversation";
+import { TeamsFxCommandHandler } from "./commandHandler";
 import { ConversationReferenceStore } from "./store";
 
 export interface NotificationMiddlewareOptions {
@@ -64,23 +64,27 @@ export class CommandResponseMiddleware implements Middleware {
 
     public async onTurn(context: TurnContext, next: () => Promise<void>): Promise<void> {
         const type = this.classifyActivity(context.activity);
+        let handlers: TeamsFxCommandHandler[] = [];
         switch (type) {
             case ActivityType.CommandReceived:
                 // Invoke corresponding command handler for the command response
                 const commandName = this.getActivityText(context.activity);
-                const handlers = this.commandHandlers.filter(handler => handler.commandName === commandName);
+                handlers = this.commandHandlers.filter(handler => handler.commandName === commandName);
                 if (handlers.length > 0) {
                     await handlers[0].handleCommandReceived(context);
                 } 
                 break;
             case ActivityType.InvokeActionTriggered:
-                const invokeResponse = await this.commandHandlers[0].handleInvokeActivity(context);
+                handlers = this.commandHandlers.filter(handler => handler.shouldActivityBeHandled(context.activity));
+                if (handlers.length > 0) {
+                    const invokeResponse = await handlers[0].handleInvokeActivity(context);
 
-                // set the response
-                context.turnState.set(INVOKE_RESPONSE_KEY, { 
-                    value: invokeResponse,
-                    type: ActivityTypes.InvokeResponse
-                });
+                    // set the response
+                    context.turnState.set(INVOKE_RESPONSE_KEY, { 
+                        value: invokeResponse,
+                        type: ActivityTypes.InvokeResponse
+                    });
+                }            
                 break
             default:
                 break;

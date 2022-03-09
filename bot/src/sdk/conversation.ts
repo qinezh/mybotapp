@@ -1,29 +1,10 @@
 import { BotFrameworkAdapter, ConversationReference, TurnContext, Storage, Activity, InvokeResponse } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
+import { TeamsFxCommandHandler } from "./commandHandler";
 import { Channel, Member, NotificationTarget, TargetType } from "./context";
 import { LocalFileStorage } from "./fileStorage";
 import { CommandResponseMiddleware, NotificationMiddleware } from "./middleware";
 import { ConversationReferenceStore } from "./store";
-
-export interface TeamsFxCommandHandler {
-    /**
-     * The command nane the this handler will process.
-     */
-    commandName: string;
-
-    /**
-     * Handles a bot command received.
-     * @param context The bot context.
-     */
-    handleCommandReceived(context: TurnContext): Promise<void>;
-
-    /**
-     * Handles an invoke activity.
-     * @param context The bot context.
-     * @returns An InvokeResponse object that bot framework will reply to user.
-     */
-    handleInvokeActivity(context: TurnContext): Promise<InvokeResponse>;
-}
 
 export interface AppConversationOptions {
     /**

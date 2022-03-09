@@ -1,14 +1,12 @@
-import { InvokeResponse, TurnContext } from "botbuilder";
+import { Activity, InvokeResponse, TurnContext } from "botbuilder";
 import { buildAdaptiveCard, buildBotMessageWithoutData, DemoCommandCardData, getInvokeResponse } from "./adaptiveCardBuider";
 import demoCommandCard from "./adaptiveCards/demo-command.json"
 import demoCommandResponseCard from "./adaptiveCards/demo-command-response.json"
-import { TeamsFxCommandHandler } from "./sdk/conversation";
+import { BaseCommandHandler } from "./sdk/commandHandler";
 
-export class SampleCommandHandler implements TeamsFxCommandHandler {
-    readonly commandName: string;
-
+export class SampleCommandHandler  extends BaseCommandHandler {
     constructor(commandName: string) {
-        this.commandName = commandName;
+        super(commandName);
     }
 
     async handleCommandReceived(context: TurnContext): Promise<void> {
@@ -28,4 +26,9 @@ export class SampleCommandHandler implements TeamsFxCommandHandler {
             return getInvokeResponse(card);
         }
     }
+
+    shouldActivityBeHandled(activity: Activity): boolean {
+        const action = activity.value.action;
+        return action.verb === 'personalDetailsFormSubmit';
+    }    
 }
