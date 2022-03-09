@@ -2,7 +2,7 @@
 
 import { BotFrameworkAdapter, TurnContext } from "botbuilder";
 import { SampleCommandHandler } from "../sampleCommandHandler";
-import { AppNotification } from "../sdk/notification";
+import { AppConversation } from "../sdk/conversation";
 
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
 export const adapter = new BotFrameworkAdapter({
@@ -31,7 +31,7 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
   await context.sendActivity("To continue to run this bot, please fix the bot source code.");
 };
 
-export const appNotification = new AppNotification(
+export const appNotification = new AppConversation(
   adapter, {
     commandHandlers: [ new SampleCommandHandler("demo") ]
   });

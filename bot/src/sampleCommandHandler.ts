@@ -2,7 +2,7 @@ import { InvokeResponse, TurnContext } from "botbuilder";
 import { buildAdaptiveCard, buildBotMessageWithoutData, DemoCommandCardData, getInvokeResponse } from "./adaptiveCardBuider";
 import demoCommandCard from "./adaptiveCards/demo-command.json"
 import demoCommandResponseCard from "./adaptiveCards/demo-command-response.json"
-import { TeamsFxCommandHandler } from "./sdk/notification";
+import { TeamsFxCommandHandler } from "./sdk/conversation";
 
 export class SampleCommandHandler implements TeamsFxCommandHandler {
     readonly commandName: string;

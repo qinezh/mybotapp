@@ -25,7 +25,7 @@ export interface TeamsFxCommandHandler {
     handleInvokeActivity(context: TurnContext): Promise<InvokeResponse>;
 }
 
-export interface AppNotificationOptions {
+export interface AppConversationOptions {
     /**
      * If `storage` is not provided, a default LocalFileStorage will be used.
      * You could also use the `BlobsStorage` provided by botbuilder-azure-blobs
@@ -40,13 +40,13 @@ export interface AppNotificationOptions {
     commandHandlers?: TeamsFxCommandHandler[]
 }
 
-export class AppNotification {
+export class AppConversation {
     private readonly conversationReferenceStore: ConversationReferenceStore;
     private readonly adapter: BotFrameworkAdapter;
     private readonly commandHandlers: TeamsFxCommandHandler[];
     private readonly conversationReferenceStoreKey = "teamfx-notification-targets";
 
-    constructor(connector: BotFrameworkAdapter, options?: AppNotificationOptions, ) {
+    constructor(connector: BotFrameworkAdapter, options?: AppConversationOptions) {
         const storage = options?.storage ?? new LocalFileStorage();
         this.conversationReferenceStore = new ConversationReferenceStore(storage, this.conversationReferenceStoreKey);
         this.adapter = connector.use(new NotificationMiddleware({

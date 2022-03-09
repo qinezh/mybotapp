@@ -1,5 +1,5 @@
 import { Activity, ActivityTypes, INVOKE_RESPONSE_KEY, Middleware, TurnContext } from "botbuilder";
-import { TeamsFxCommandHandler } from "./notification";
+import { TeamsFxCommandHandler } from "./conversation";
 import { ConversationReferenceStore } from "./store";
 
 export interface NotificationMiddlewareOptions {
