@@ -27,19 +27,20 @@ export class AppNotification {
         }));
     }
 
-    public async forEachNotificationTarget(action: (target: NotificationTarget) => Promise<void>): Promise<void> {
+    public async getNotificationTargets(): Promise<NotificationTarget[]> {
         const references = await this.conversationReferenceStore.list();
+        const notificationTargets: NotificationTarget[] = [];
         for (const reference of references) {
             const targetType = this.getTargetType(reference);
-            await this.adapter.continueConversation(reference, async (context: TurnContext) => {
-                await action(new NotificationTarget(context, targetType));
-            });
+            notificationTargets.push(new NotificationTarget(this.adapter, reference, targetType));
         }
+
+        return notificationTargets;
     }
 
     public async notify(activityOrText: string | Partial<Activity>, target: NotificationTarget | Member | Channel): Promise<void> {
         if (target instanceof NotificationTarget) {
-            await target.turnContext.sendActivity(activityOrText);
+            await this.notifyTarget(activityOrText, target);
         } else if (target.type === "Person") {
             await this.notifyMember(activityOrText, target);
         } else if (target.type === "Channel") {
@@ -50,52 +51,55 @@ export class AppNotification {
     }
 
     public async notifyAll(activityOrText: string | Partial<Activity>, options?: { scope: "Default" | "Member" | "Channel" }): Promise<void> {
-        if (options === undefined || options.scope === "Default") {
-            await this.forEachNotificationTarget(async target => await this.notify(activityOrText, target));
-        } else if (options.scope === "Member") {
-            await this.forEachNotificationTarget(async target => {
+        const targets = await this.getNotificationTargets();
+        for (const target of targets) {
+            if (options === undefined || options.scope === "Default") {
+                await this.notifyTarget(activityOrText, target);
+            } else if (options.scope === "Member") {
                 const members = await target.members();
                 for (const member of members) {
                     await this.notifyMember(activityOrText, member);
                 }
-            });
-        } else if (options.scope === "Channel") {
-            await this.forEachNotificationTarget(async target => {
+            } else if (options.scope === "Channel") {
                 const channels = await target.channels();
                 for (const channel of channels) {
                     await this.notifyChannel(activityOrText, channel);
                 }
-            });
+            }
         }
     }
 
-    private async notifyMember(activityOrText: string | Partial<Activity>, member: Member): Promise<void> {
-        const reference = TurnContext.getConversationReference(member.notificationTarget.turnContext.activity);
-        const personalConversation = this.cloneConversation(reference);
+    private notifyTarget(activityOrText: string | Partial<Activity>, target: NotificationTarget): Promise<void>{
+        return target.continueConversation(async context => { await context.sendActivity(activityOrText) });
+    }
 
-        const connectorClient: ConnectorClient = member.notificationTarget.turnContext.turnState.get(this.adapter.ConnectorClientKey);
-        const conversation = await connectorClient.conversations.createConversation({
-            isGroup: false,
-            tenantId: member.notificationTarget.turnContext.activity.conversation.tenantId,
-            bot: member.notificationTarget.turnContext.activity.recipient,
-            members: [member.account],
-            activity: undefined,
-            channelData: {},
-        });
-        personalConversation.conversation.id = conversation.id;
+    private notifyMember(activityOrText: string | Partial<Activity>, member: Member): Promise<void> {
+        return member.notificationTarget.continueConversation(async context => {
+            const reference = TurnContext.getConversationReference(context.activity);
+            const personalConversation = this.cloneConversation(reference);
+    
+            const connectorClient: ConnectorClient = context.turnState.get(this.adapter.ConnectorClientKey);
+            const conversation = await connectorClient.conversations.createConversation({
+                isGroup: false,
+                tenantId: context.activity.conversation.tenantId,
+                bot: context.activity.recipient,
+                members: [member.account],
+                activity: undefined,
+                channelData: {},
+            });
+            personalConversation.conversation.id = conversation.id;
 
-        await this.adapter.continueConversation(personalConversation, async (context: TurnContext) => {
             await context.sendActivity(activityOrText);
         });
     }
 
-    private async notifyChannel(activityOrText: string | Partial<Activity>, channel: Channel): Promise<void> {
-        const reference = TurnContext.getConversationReference(channel.notificationTarget.turnContext.activity);
-        const channelConversation = this.cloneConversation(reference);
-        channelConversation.conversation.id = channel.info.id;
+    private notifyChannel(activityOrText: string | Partial<Activity>, channel: Channel): Promise<void> {
+        return channel.notificationTarget.continueConversation(async context => {
+            const reference = TurnContext.getConversationReference(context.activity);
+            const channelConversation = this.cloneConversation(reference);
+            channelConversation.conversation.id = channel.info.id;
 
-        await this.adapter.continueConversation(channelConversation, async (context: TurnContext) => {
-            const response = await context.sendActivity(activityOrText);
+            await context.sendActivity(activityOrText);
         });
     }
 
