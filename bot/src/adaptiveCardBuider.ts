@@ -1,4 +1,4 @@
-import { Activity, CardFactory } from "botbuilder";
+import { Activity, CardFactory, StatusCodes, TurnContext } from "botbuilder";
 import { AdaptiveCards } from "@microsoft/adaptivecards-tools";
 import notificationTemplate from "./adaptiveCards/notification-default.json";
 
@@ -27,3 +27,48 @@ export function buildBotMessage(getCardData: () => CardData): Partial<Activity> 
     ]
   };
 }
+
+/**
+ * Utility method to build adaptive card without user data
+ */
+ export function buildBotMessageWithoutData(card: any): Partial<Activity> {
+  // Wrap the message in adaptive card
+  return {
+    attachments: [
+      CardFactory.adaptiveCard(
+        AdaptiveCards.declareWithoutData(card).render()
+      )
+    ]
+  };
+}
+
+// Can be customized to return different response card according to different invoke activity
+export async function handleInvokeActivity(context: TurnContext): Promise<any> {
+  const action = context.activity.value.action;
+  const card = {
+    $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+    body: [
+      {
+        type: "TextBlock",
+        text: `Command executed sussfully! First Name: ${action.data.lastName}, Last Name: ${action.data.lastName}`,
+        wrap: true
+      },
+    ]
+  };
+
+  return card;
+}
+
+export function getInvokeResponse(card: any): any {
+  const cardRes = {
+    statusCode: StatusCodes.OK,
+    type: 'application/vnd.microsoft.card.adaptive',
+    value: card
+  };
+
+  const res = {
+    status: StatusCodes.OK,
+    body: cardRes
+  };
+  return res;
+};

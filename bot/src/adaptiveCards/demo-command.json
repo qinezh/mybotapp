@@ -1,0 +1,32 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.4",
+    "body": [
+      {
+        "type": "TextBlock",
+        "text": "Present a form and submit it back to the originator"
+      },
+      {
+        "type": "Input.Text",
+        "id": "firstName",
+        "placeholder": "What is your first name?"
+      },
+      {
+        "type": "Input.Text",
+        "id": "lastName",
+        "placeholder": "What is your last name?"
+      },
+      {
+        "type": "ActionSet",
+        "actions": [
+          {
+            "type": "Action.Execute",
+            "title": "Submit",
+            "verb": "personalDetailsFormSubmit",
+            "fallback": "Action.Submit"
+          }
+        ]
+      }
+    ]
+  }
