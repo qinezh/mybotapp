@@ -20,4 +20,4 @@ local.settings.json
 _storage_emulator
 
 # Local data
-.teamsfx.bot.json
+.notification.localstore.json

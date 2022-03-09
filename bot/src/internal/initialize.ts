@@ -1,7 +1,7 @@
 // try better naming to hide for user
 
 import { BotFrameworkAdapter, TurnContext } from "botbuilder";
-import { AppNotification } from "../sdk/bot";
+import { AppNotification } from "../sdk/notification";
 
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
 export const adapter = new BotFrameworkAdapter({
