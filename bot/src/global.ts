@@ -1,4 +1,5 @@
 import { BotFrameworkAdapter, TurnContext } from "botbuilder";
+import { SampleCommandHandler } from "./sampleCommandHandler";
 import { TeamsFxBot } from "./sdk/bot";
 
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
@@ -28,4 +29,7 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
   await context.sendActivity("To continue to run this bot, please fix the bot source code.");
 };
 
-export const teamsfxBot = new TeamsFxBot(adapter);
+//export const teamsfxBot = new TeamsFxBot(adapter);
+export const teamsfxBot = new TeamsFxBot(adapter, {
+  commandHandlers: [ new SampleCommandHandler("demo") ]
+});

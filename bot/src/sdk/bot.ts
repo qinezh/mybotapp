@@ -2,7 +2,7 @@ import { BotFrameworkAdapter, ConversationReference, TurnContext, Storage, Activ
 import { ConnectorClient } from "botframework-connector";
 import { TeamsFxBotContext } from "./context";
 import { FileStorage } from "./fileStorage";
-import { TeamsFxMember, TeamsFxChannel, WelcomeMessage, TeamsFxBotSettingsProvider } from "./interfaces";
+import { TeamsFxMember, TeamsFxChannel, WelcomeMessage, TeamsFxBotSettingsProvider, TeamsFxCommandHandler } from "./interfaces";
 import { TeamsFxMiddleware } from "./middleware";
 import { BotSettingsStore, ConversationReferenceStore } from "./store";
 
@@ -14,7 +14,8 @@ export interface TeamsFxBotOptions {
      * */
     storage?: Storage,
     welcomeMessage?: WelcomeMessage,
-    settingsProvider?: TeamsFxBotSettingsProvider
+    settingsProvider?: TeamsFxBotSettingsProvider,
+    commandHandlers?: TeamsFxCommandHandler[]
 }
 
 export class TeamsFxBot {
@@ -33,7 +34,8 @@ export class TeamsFxBot {
             conversationReferenceStore: this.conversationReferenceStore,
             settingsStore: this.settingsStore,
             welcomeMessage: options?.welcomeMessage,
-            settingsProvider: options?.settingsProvider
+            settingsProvider: options?.settingsProvider,
+            commandHandlers: options?.commandHandlers
         }));
     }
 

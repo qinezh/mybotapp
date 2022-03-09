@@ -44,6 +44,10 @@
                         {
                             "title": "settings",
                             "description": "Configure your bot"
+                        },
+                        {
+                            "title": "demo",
+                            "description": "A demo bot command with user input"
                         }
                     ]
                 }

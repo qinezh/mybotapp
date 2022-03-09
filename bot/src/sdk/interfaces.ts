@@ -1,4 +1,4 @@
-import { Activity, ChannelInfo, TeamsChannelAccount, TurnContext } from "botbuilder";
+import { Activity, ChannelInfo, InvokeResponse, TeamsChannelAccount, TurnContext } from "botbuilder";
 
 export interface WelcomeMessage {
     message: Partial<Activity>,
@@ -40,6 +40,26 @@ export abstract class BasicTeamsFxBotSettingsProvider implements TeamsFxBotSetti
 }
 
 export type TeamsFxBotSettings = { [key: string]: any };
+
+export interface TeamsFxCommandHandler {
+    /**
+     * The command nane the this handler will process.
+     */
+    commandName: string;
+
+    /**
+     * Handles a bot command received.
+     * @param context The bot context.
+     */
+    handleCommandReceived(context: BotContext): Promise<void>;
+
+    /**
+     * Handles an invoke activity.
+     * @param context The bot context.
+     * @returns An InvokeResponse object that bot framework will reply to user.
+     */
+    handleInvokeActivity(context: BotContext): Promise<InvokeResponse>;
+}
 
 export interface TeamsFxMember {
     appInstallation: BotContext,
