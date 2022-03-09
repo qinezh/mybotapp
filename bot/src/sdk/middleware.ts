@@ -75,7 +75,12 @@ export class TeamsFxMiddleware implements Middleware {
                 });
                 break;
             case ActivityType.CommandReceived:
-                await this.commandHandlers[0].handleCommandReceived(new TeamsFxBotContext(context, this.settingsStore));
+                // Invoke corresponding command handler for the command response
+                const commandName = Utils.getActivityText(context.activity);
+                const handlers = this.commandHandlers.filter(handler => handler.commandName === commandName);
+                if (handlers.length > 0) {
+                    await handlers[0].handleCommandReceived(new TeamsFxBotContext(context, this.settingsStore));
+                }              
                 break;
             case ActivityType.InvokeActivity:
                 const invokeResponse = await this.commandHandlers[0].handleInvokeActivity(new TeamsFxBotContext(context, this.settingsStore));
@@ -107,11 +112,7 @@ export class TeamsFxMiddleware implements Middleware {
         }
 
         if (this.settingsProvider) {
-            let text = activity.text;
-            const removedMentionText = TurnContext.removeRecipientMention(activity);
-            if (removedMentionText) {
-                text = removedMentionText.toLowerCase().replace(/\n|\r\n/g, "").trim();
-            }
+            const text = Utils.getActivityText(activity);
 
             if (text === this.settingsProvider.commandName) {
                 return ActivityType.SettingCommandReceived
@@ -156,12 +157,7 @@ export class TeamsFxMiddleware implements Middleware {
 
     private isCommandReceived(activity: Activity): boolean {
         if (this.commandHandlers) {
-            let text = activity.text;
-            const removedMentionText = TurnContext.removeRecipientMention(activity);
-            if (removedMentionText) {
-                text = removedMentionText.toLowerCase().replace(/\n|\r\n/g, "").trim();
-            }
-
+            let text = Utils.getActivityText(activity);
             const handlers = this.commandHandlers.filter(handler => handler.commandName === text);
             return handlers.length > 0;
         } else {
@@ -170,6 +166,9 @@ export class TeamsFxMiddleware implements Middleware {
     }
 
     private isInvokeActivity(activity: Activity): boolean {
-        return (activity !== undefined && activity.type === 'invoke' && activity.name === 'adaptiveCard/action');
+        return (
+            activity !== undefined &&
+            activity.type === ActivityTypes.Invoke &&
+            activity.name === 'adaptiveCard/action');
     }
 }

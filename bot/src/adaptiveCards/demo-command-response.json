@@ -1,0 +1,17 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.4",
+    "body": [
+      {
+        "type": "TextBlock",
+        "text": "Command executed sussfully!",
+        "wrap": true
+      },
+      {
+        "type": "TextBlock",
+        "text": "First Name: ${firstName}, Last Name: ${lastName}",
+        "wrap": true
+      }
+    ]
+  }

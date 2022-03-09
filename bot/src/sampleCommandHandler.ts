@@ -1,7 +1,8 @@
 import { InvokeResponse } from "botbuilder";
-import { buildBotMessageWithoutData, getInvokeResponse } from "./adaptiveCardBuider";
+import { buildAdaptiveCard, buildBotMessageWithoutData, DemoCommandCardData, getInvokeResponse } from "./adaptiveCardBuider";
 import { BotContext, TeamsFxCommandHandler } from "./sdk/interfaces";
 import demoCommandCard from "./adaptiveCards/demo-command.json"
+import demoCommandResponseCard from "./adaptiveCards/demo-command-response.json"
 
 export class SampleCommandHandler implements TeamsFxCommandHandler {
     readonly commandName: string;
@@ -17,19 +18,13 @@ export class SampleCommandHandler implements TeamsFxCommandHandler {
 
     async handleInvokeActivity(context: BotContext): Promise<InvokeResponse> {
         const action = context.turnContext.activity.value.action;
+        const input: DemoCommandCardData = {
+            firstName: action.data.firstName,
+            lastName: action.data.lastName
+        }
         
         if (action.verb === 'personalDetailsFormSubmit') {
-            const card = {
-                $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-                body: [
-                    {
-                        type: "TextBlock",
-                        text: `Command executed sussfully! First Name: ${action.data.lastName}, Last Name: ${action.data.lastName}`,
-                        wrap: true
-                    },
-                ]
-            };
-
+            const card = buildAdaptiveCard<DemoCommandCardData>(() => input, demoCommandResponseCard);
             return getInvokeResponse(card);
         }
     }
