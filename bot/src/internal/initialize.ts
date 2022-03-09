@@ -1,6 +1,7 @@
 // try better naming to hide for user
 
 import { BotFrameworkAdapter, TurnContext } from "botbuilder";
+import { SampleCommandHandler } from "../sampleCommandHandler";
 import { AppNotification } from "../sdk/notification";
 
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
@@ -30,4 +31,7 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
   await context.sendActivity("To continue to run this bot, please fix the bot source code.");
 };
 
-export const appNotification = new AppNotification(adapter);
+export const appNotification = new AppNotification(
+  adapter, {
+    commandHandlers: [ new SampleCommandHandler("demo") ]
+  });

@@ -1,29 +1,68 @@
-import { Activity, CardFactory } from "botbuilder";
+import { Activity, CardFactory, StatusCodes, TurnContext } from "botbuilder";
 import { AdaptiveCards } from "@microsoft/adaptivecards-tools";
-import notificationTemplate from "./adaptiveCards/notification-default.json";
 
 /**
  * Adaptive card data model bound to the card template.
  */
-export interface CardData {
+export interface NotificationCardData {
   title: string,
   appName: string,
   description: string,
   notificationUrl: string
 }
 
+export interface DemoCommandCardData {
+  firstName: string,
+  lastName: string
+}
+
 /**
- * Utility method to convert the message data to adaptive card
+ * Utility method to convert the message data to adaptive card for bot framework.
  * @param getCardData Function to prepare your card data.
+ * @param cardTemplate The adaptive card template.
  * @returns A bot activity object attached with adaptive card.
  */
-export function buildBotMessage(getCardData: () => CardData): Partial<Activity> {
-  // Wrap the message in adaptive card
+export function buildBotMessage<TData>(getCardData: () => TData, cardTemplate: any): Partial<Activity> {
+  const cardData: TData = getCardData();
+
+  // Wrap the message in adaptive card for bot framework
   return {
     attachments: [
       CardFactory.adaptiveCard(
-        AdaptiveCards.declare<CardData>(notificationTemplate).render(getCardData())
+        AdaptiveCards.declare<TData>(cardTemplate).render(cardData)
       )
     ]
   };
 }
+
+/**
+ * Utility method to build adaptive card without user data
+ */
+ export function buildBotMessageWithoutData(card: any): Partial<Activity> {
+  // Wrap the message in adaptive card
+  return {
+    attachments: [
+      CardFactory.adaptiveCard(
+        AdaptiveCards.declareWithoutData(card).render()
+      )
+    ]
+  };
+}
+
+export function buildAdaptiveCard<TData>(getCardData: () => TData, cardTemplate: any): Partial<Activity> {
+  return AdaptiveCards.declare<TData>(cardTemplate).render(getCardData())
+}
+
+export function getInvokeResponse(card: any): any {
+  const cardRes = {
+    statusCode: StatusCodes.OK,
+    type: 'application/vnd.microsoft.card.adaptive',
+    value: card
+  };
+
+  const res = {
+    status: StatusCodes.OK,
+    body: cardRes
+  };
+  return res;
+};

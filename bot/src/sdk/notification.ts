@@ -1,9 +1,29 @@
-import { BotFrameworkAdapter, ConversationReference, TurnContext, Storage, Activity } from "botbuilder";
+import { BotFrameworkAdapter, ConversationReference, TurnContext, Storage, Activity, InvokeResponse } from "botbuilder";
 import { ConnectorClient } from "botframework-connector";
 import { Channel, Member, NotificationTarget, TargetType } from "./context";
 import { LocalFileStorage } from "./fileStorage";
-import { NotificationMiddleware } from "./middleware";
+import { CommandResponseMiddleware, NotificationMiddleware } from "./middleware";
 import { ConversationReferenceStore } from "./store";
+
+export interface TeamsFxCommandHandler {
+    /**
+     * The command nane the this handler will process.
+     */
+    commandName: string;
+
+    /**
+     * Handles a bot command received.
+     * @param context The bot context.
+     */
+    handleCommandReceived(context: TurnContext): Promise<void>;
+
+    /**
+     * Handles an invoke activity.
+     * @param context The bot context.
+     * @returns An InvokeResponse object that bot framework will reply to user.
+     */
+    handleInvokeActivity(context: TurnContext): Promise<InvokeResponse>;
+}
 
 export interface AppNotificationOptions {
     /**
@@ -12,19 +32,31 @@ export interface AppNotificationOptions {
      * or `CosmosDbPartitionedStorage` provided by botbuilder-azure
      * */
     storage?: Storage,
+
+    /**
+     * If you want to provide command(s) that your app can response to, 
+     * you can set your command handlers to process the commands defined by your app.
+     */
+    commandHandlers?: TeamsFxCommandHandler[]
 }
 
 export class AppNotification {
     private readonly conversationReferenceStore: ConversationReferenceStore;
     private readonly adapter: BotFrameworkAdapter;
+    private readonly commandHandlers: TeamsFxCommandHandler[];
     private readonly conversationReferenceStoreKey = "teamfx-notification-targets";
 
-    constructor(connector: BotFrameworkAdapter, options?: AppNotificationOptions) {
+    constructor(connector: BotFrameworkAdapter, options?: AppNotificationOptions, ) {
         const storage = options?.storage ?? new LocalFileStorage();
         this.conversationReferenceStore = new ConversationReferenceStore(storage, this.conversationReferenceStoreKey);
         this.adapter = connector.use(new NotificationMiddleware({
             conversationReferenceStore: this.conversationReferenceStore,
         }));
+
+        if (options.commandHandlers) {
+            this.commandHandlers = options.commandHandlers;
+            this.adapter = connector.use(new CommandResponseMiddleware(this.commandHandlers));
+        }
     }
 
     public async forEachNotificationTarget(action: (target: NotificationTarget) => Promise<void>): Promise<void> {

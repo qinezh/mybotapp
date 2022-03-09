@@ -32,7 +32,22 @@
                 "groupchat"
             ],
             "supportsFiles": false,
-            "isNotificationOnly": false
+            "isNotificationOnly": false,
+            "commandLists": [
+                {
+                    "scopes": [
+                        "personal",
+                        "team",
+                        "groupchat"
+                    ],
+                    "commands": [
+                        {
+                            "title": "demo",
+                            "description": "A demo bot command with user input"
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "composeExtensions": [],
