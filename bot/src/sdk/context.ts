@@ -2,16 +2,16 @@ import { ChannelInfo, TeamsChannelAccount, TeamsInfo, TurnContext } from "botbui
 
 export type TargetType = "Channel" | "Group" | "Person";
 
-export class Member {
-    public readonly type: TargetType = "Person";
-    public notificationTarget: NotificationTarget;
-    public account: TeamsChannelAccount;
+export interface Member {
+    type: "Person";
+    notificationTarget: NotificationTarget;
+    account: TeamsChannelAccount;
 }
 
-export class Channel {
-    public readonly type: TargetType = "Channel";
-    public notificationTarget: NotificationTarget;
-    public info: ChannelInfo;
+export interface Channel {
+    type: "Channel";
+    notificationTarget: NotificationTarget;
+    info: ChannelInfo;
 }
 
 export class NotificationTarget {

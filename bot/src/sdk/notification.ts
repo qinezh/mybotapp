@@ -40,9 +40,9 @@ export class AppNotification {
     public async notify(activityOrText: string | Partial<Activity>, target: NotificationTarget | Member | Channel): Promise<void> {
         if (target instanceof NotificationTarget) {
             await target.turnContext.sendActivity(activityOrText);
-        } else if (target instanceof Member) {
+        } else if (target.type === "Person") {
             await this.notifyMember(activityOrText, target);
-        } else if (target instanceof Channel) {
+        } else if (target.type === "Channel") {
             await this.notifyChannel(activityOrText, target);
         } else {
             throw new Error("target is none of NotificationTarget|Member|Channel");
