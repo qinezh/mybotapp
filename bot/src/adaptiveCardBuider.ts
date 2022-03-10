@@ -1,6 +1,8 @@
 import { Activity, CardFactory, StatusCodes, TurnContext } from "botbuilder";
 import { AdaptiveCards } from "@microsoft/adaptivecards-tools";
 
+export type AdaptiveCard = any;
+
 /**
  * Adaptive card data model bound to the card template.
  */
@@ -38,7 +40,7 @@ export function buildBotMessage<TData>(getCardData: () => TData, cardTemplate: a
 /**
  * Utility method to build adaptive card without user data
  */
- export function buildBotMessageWithoutData(card: any): Partial<Activity> {
+ export function buildBotMessageWithCard(card: any): Partial<Activity> {
   // Wrap the message in adaptive card
   return {
     attachments: [

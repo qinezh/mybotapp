@@ -1,4 +1,5 @@
 import { Activity, ActivityTypes, INVOKE_RESPONSE_KEY, Middleware, TurnContext } from "botbuilder";
+import { buildBotMessageWithCard } from "../adaptiveCardBuider";
 import { TeamsFxCommandHandler } from "./commandHandler";
 import { ConversationReferenceStore } from "./store";
 
@@ -71,8 +72,10 @@ export class CommandResponseMiddleware implements Middleware {
                 const commandName = this.getActivityText(context.activity);
                 handlers = this.commandHandlers.filter(handler => handler.commandName === commandName);
                 if (handlers.length > 0) {
-                    await handlers[0].handleCommandReceived(context);
-                } 
+                    const card = await handlers[0].handleCommandReceived(context);
+                    const botMessage = buildBotMessageWithCard(card);
+                    await context.sendActivity(botMessage);
+                }
                 break;
             case ActivityType.InvokeActionTriggered:
                 handlers = this.commandHandlers.filter(handler => handler.shouldHandleExecutionAction(context.activity));
@@ -128,6 +131,8 @@ export class CommandResponseMiddleware implements Middleware {
         if (removedMentionText) {
             text = removedMentionText.toLowerCase().replace(/\n|\r\n/g, "").trim();
         }
+
+        // todo: parse command argument
 
         return text;
     }

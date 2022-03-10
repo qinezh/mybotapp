@@ -1,17 +1,17 @@
 import { Activity, InvokeResponse, TurnContext } from "botbuilder";
-import { buildAdaptiveCard, buildBotMessageWithoutData, DemoCommandCardData, getInvokeResponse } from "./adaptiveCardBuider";
+import { AdaptiveCard, buildAdaptiveCard, buildBotMessageWithCard, DemoCommandCardData, getInvokeResponse } from "./adaptiveCardBuider";
 import demoCommandCard from "./adaptiveCards/demo-command.json"
 import demoCommandResponseCard from "./adaptiveCards/demo-command-response.json"
 import { BaseCommandHandler } from "./sdk/commandHandler";
 
-export class SampleCommandHandler  extends BaseCommandHandler {
+export class SampleCommandHandler extends BaseCommandHandler {
     constructor(commandName: string) {
         super(commandName);
     }
 
-    async handleCommandReceived(context: TurnContext): Promise<void> {
-        const card = buildBotMessageWithoutData(demoCommandCard);
-        await context.sendActivity(card);
+    async handleCommandReceived(context: TurnContext): Promise<AdaptiveCard> {
+        // do something to process your command and return an adaptive card.
+        return demoCommandCard;
     }
 
     async handleExecuteAction(context: TurnContext): Promise<InvokeResponse> {

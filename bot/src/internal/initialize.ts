@@ -31,7 +31,7 @@ adapter.onTurnError = async (context: TurnContext, error: Error) => {
   await context.sendActivity("To continue to run this bot, please fix the bot source code.");
 };
 
-export const appNotification = new AppConversation(
+export const appConversation = new AppConversation(
   adapter, {
-    commandHandlers: [ new SampleCommandHandler("demo") ]
+    commandHandlers: [ new SampleCommandHandler("demo")]
   });

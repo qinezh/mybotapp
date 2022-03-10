@@ -1,11 +1,11 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { appNotification } from "./internal/initialize";
+import { appConversation } from "./internal/initialize";
 import { buildBotMessage, NotificationCardData } from "./adaptiveCardBuider";
 import notificationTemplate from "./adaptiveCards/notification-default.json"
 
 // HTTP trigger to send notification.
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  await appNotification.notifyAll(buildBotMessage<NotificationCardData>(() => {
+  await appConversation.notifyAll(buildBotMessage<NotificationCardData>(() => {
     return {
       title: "New Event Occurred!",
       appName: "Contoso App Notification",
