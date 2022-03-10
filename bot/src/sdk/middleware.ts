@@ -75,9 +75,9 @@ export class CommandResponseMiddleware implements Middleware {
                 } 
                 break;
             case ActivityType.InvokeActionTriggered:
-                handlers = this.commandHandlers.filter(handler => handler.shouldActivityBeHandled(context.activity));
+                handlers = this.commandHandlers.filter(handler => handler.shouldHandleExecutionAction(context.activity));
                 if (handlers.length > 0) {
-                    const invokeResponse = await handlers[0].handleInvokeActivity(context);
+                    const invokeResponse = await handlers[0].handleExecuteAction(context);
 
                     // set the response
                     context.turnState.set(INVOKE_RESPONSE_KEY, { 

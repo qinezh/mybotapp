@@ -17,13 +17,13 @@ export interface TeamsFxCommandHandler {
      * @param context The bot context.
      * @returns An InvokeResponse object that bot framework will reply to user.
      */
-    handleInvokeActivity(context: TurnContext): Promise<InvokeResponse>;
+     handleExecuteAction(context: TurnContext): Promise<InvokeResponse>;
 
     /**
-     * Used to identify whether the Invoke Activity should be handled by this command handler.
+     * Used to identify whether the execute action should be handled by this command handler.
      * @param activity 
      */
-    shouldActivityBeHandled(activity: Activity): boolean;
+    shouldHandleExecutionAction(activity: Activity): boolean;
 }
 
 export abstract class BaseCommandHandler implements TeamsFxCommandHandler {
@@ -37,11 +37,11 @@ export abstract class BaseCommandHandler implements TeamsFxCommandHandler {
         throw new Error("Method not implemented.");
     }
 
-    handleInvokeActivity(context: TurnContext): Promise<InvokeResponse<any>> {
+    handleExecuteAction(context: TurnContext): Promise<InvokeResponse<any>> {
         throw new Error("Method not implemented.");
     }
 
-    shouldActivityBeHandled(activity: Activity): boolean {
+    shouldHandleExecutionAction(activity: Activity): boolean {
         return false;
     }
     

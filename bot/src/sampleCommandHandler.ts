@@ -14,7 +14,7 @@ export class SampleCommandHandler  extends BaseCommandHandler {
         await context.sendActivity(card);
     }
 
-    async handleInvokeActivity(context: TurnContext): Promise<InvokeResponse> {
+    async handleExecuteAction(context: TurnContext): Promise<InvokeResponse> {
         const action = context.activity.value.action;
         const input: DemoCommandCardData = {
             firstName: action.data.firstName,
@@ -27,7 +27,7 @@ export class SampleCommandHandler  extends BaseCommandHandler {
         }
     }
 
-    shouldActivityBeHandled(activity: Activity): boolean {
+    shouldHandleExecutionAction(activity: Activity): boolean {
         const action = activity.value.action;
         return action.verb === 'personalDetailsFormSubmit';
     }    
