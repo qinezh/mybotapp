@@ -2,7 +2,7 @@ import { BotFrameworkAdapter, Storage } from "botbuilder";
 import { LocalFileStorage } from "./fileStorage";
 import { NotificationMiddleware } from "./middleware";
 import { ConversationReferenceStore } from "./store";
-import { TeamsBotTarget } from "./context";
+import { TeamsBotInstallation } from "./context";
 
 export interface BotNotificationOptions {
     /**
@@ -26,15 +26,15 @@ export class BotNotification {
         }));
     }
 
-    public static async getTargets(): Promise<TeamsBotTarget[]> {
+    public static async installations(): Promise<TeamsBotInstallation[]> {
         if (BotNotification.conversationReferenceStore === undefined || BotNotification.adapter === undefined) {
             throw new Error("BotNotification has not been initialized.");
         }
 
         const references = await BotNotification.conversationReferenceStore.list();
-        const targets: TeamsBotTarget[] = [];
+        const targets: TeamsBotInstallation[] = [];
         for (const reference of references) {
-            targets.push(new TeamsBotTarget(BotNotification.adapter, reference));
+            targets.push(new TeamsBotInstallation(BotNotification.adapter, reference));
         }
 
         return targets;

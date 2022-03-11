@@ -4,8 +4,8 @@ import { buildAdaptiveCard } from "./adaptiveCardBuider";
 
 // HTTP trigger to send notification.
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  for (const target of await BotNotification.getTargets()) {
-    await target.notifyAdaptiveCard(buildAdaptiveCard(() => {
+  for (const target of await BotNotification.installations()) {
+    await target.sendAdaptiveCard(buildAdaptiveCard(() => {
       return {
         title: "New Event Occurred!",
         appName: "Contoso App Notification",
@@ -14,6 +14,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }));
   }
+
+
 
   context.res = {};
 };

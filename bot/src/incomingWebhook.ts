@@ -4,7 +4,7 @@ import { IncomingWebhookTarget, NotificationTarget } from "./sdk/context";
 
 async function testIncomingWebhook() {
     const target: NotificationTarget = new IncomingWebhookTarget(new URL("webhook-url"));
-    await target.notifyAdaptiveCard(buildAdaptiveCard(() => {
+    await target.sendAdaptiveCard(buildAdaptiveCard(() => {
         return {
             title: "New Event Occurred!",
             appName: "Contoso App Notification",

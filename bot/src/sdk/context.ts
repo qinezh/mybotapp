@@ -6,21 +6,29 @@ export type TargetType = "Channel" | "Group" | "Person";
 
 export interface NotificationTarget {
     readonly type?: TargetType;
-    notifyText(text: string): Promise<void>;
-    notifyAdaptiveCard(card: any): Promise<void>;
+    sendMessage(text: string): Promise<void>;
+    sendAdaptiveCard(card: any): Promise<void>;
+}
+
+export function sendMessage(target: NotificationTarget, text: string): Promise<void> {
+    return target.sendMessage(text);
+}
+
+export function sendAdaptiveCard(target: NotificationTarget, card: any): Promise<void> {
+    return target.sendAdaptiveCard(card);
 }
 
 export class Channel implements NotificationTarget {
-    public readonly parent: TeamsBotTarget;
+    public readonly parent: TeamsBotInstallation;
     public readonly info: ChannelInfo;
     public readonly type: TargetType = "Channel";
 
-    constructor(parent: TeamsBotTarget, info: ChannelInfo) {
+    constructor(parent: TeamsBotInstallation, info: ChannelInfo) {
         this.parent = parent;
         this.info = info;
     }
 
-    public notifyText(text: string): Promise<void> {
+    public sendMessage(text: string): Promise<void> {
         return this.parent.continueConversation(async context => {
             const conversation = await this.newConversation(context);
             await this.parent.adapter.continueConversation(conversation, async (ctx: TurnContext) => {
@@ -29,7 +37,7 @@ export class Channel implements NotificationTarget {
         });
     }
 
-    public async notifyAdaptiveCard(card: any): Promise<void> {
+    public async sendAdaptiveCard(card: any): Promise<void> {
         return this.parent.continueConversation(async context => {
             const conversation = await this.newConversation(context);
             await this.parent.adapter.continueConversation(conversation, async (ctx: TurnContext) => {
@@ -52,16 +60,16 @@ export class Channel implements NotificationTarget {
 }
 
 export class Member implements NotificationTarget {
-    public readonly parent: TeamsBotTarget;
+    public readonly parent: TeamsBotInstallation;
     public readonly account: TeamsChannelAccount;
     public readonly type: TargetType = "Person";
 
-    constructor(parent: TeamsBotTarget, account: TeamsChannelAccount) {
+    constructor(parent: TeamsBotInstallation, account: TeamsChannelAccount) {
         this.parent = parent;
         this.account = account;
     }
 
-    public notifyText(text: string): Promise<void> {
+    public sendMessage(text: string): Promise<void> {
         return this.parent.continueConversation(async context => {
             const conversation = await this.newConversation(context);
             await this.parent.adapter.continueConversation(conversation, async (ctx: TurnContext) => {
@@ -70,7 +78,7 @@ export class Member implements NotificationTarget {
         });
     }
 
-    public async notifyAdaptiveCard(card: any): Promise<void> {
+    public async sendAdaptiveCard(card: any): Promise<void> {
         return this.parent.continueConversation(async context => {
             const conversation = await this.newConversation(context);
             await this.parent.adapter.continueConversation(conversation, async (ctx: TurnContext) => {
@@ -102,7 +110,7 @@ export class Member implements NotificationTarget {
     }
 }
 
-export class TeamsBotTarget implements NotificationTarget {
+export class TeamsBotInstallation implements NotificationTarget {
     public readonly adapter: BotFrameworkAdapter;
     public readonly conversationReference: Partial<ConversationReference>;
     public readonly type?: TargetType;
@@ -116,11 +124,11 @@ export class TeamsBotTarget implements NotificationTarget {
         this.type = getTargetType(conversationReference);
     }
 
-    public notifyText(text: string): Promise<void> {
+    public sendMessage(text: string): Promise<void> {
         return this.continueConversation(async context => { await context.sendActivity(text) });
     }
 
-    public notifyAdaptiveCard(card: any): Promise<void> {
+    public sendAdaptiveCard(card: any): Promise<void> {
         return this.continueConversation(async context => {
             await context.sendActivity({
                 attachments: [
@@ -133,7 +141,7 @@ export class TeamsBotTarget implements NotificationTarget {
     public async channels(): Promise<Channel[]> {
         let teamsChannels: ChannelInfo[];
         await this.continueConversation(async context => {
-            const teamId = getTeamsBotTargetId(context);
+            const teamId = getTeamsBotInstallationId(context);
             if (!teamId) {
                 teamsChannels = [];
             }
@@ -172,7 +180,7 @@ export class IncomingWebhookTarget implements NotificationTarget {
         this.webhook = webhook;
     }
 
-    public notifyText(text: string): Promise<void> {
+    public sendMessage(text: string): Promise<void> {
         return axios.post(
             this.webhook.toString(),
             {
@@ -184,7 +192,7 @@ export class IncomingWebhookTarget implements NotificationTarget {
         );
     }
 
-    public notifyAdaptiveCard(card: any): Promise<void> {
+    public sendAdaptiveCard(card: any): Promise<void> {
         return axios.post(
             this.webhook.toString(),
             {
@@ -221,7 +229,7 @@ function getTargetType(conversationReference: Partial<ConversationReference>): T
     }
 }
 
-function getTeamsBotTargetId(context: TurnContext): string {
+function getTeamsBotInstallationId(context: TurnContext): string {
     return context.activity?.channelData?.team?.id
         ?? context.activity.conversation.id;
 }
