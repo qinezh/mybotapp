@@ -1,8 +1,9 @@
 import { BotFrameworkAdapter, Storage } from "botbuilder";
 import { LocalFileStorage } from "./fileStorage";
-import { NotificationMiddleware } from "./middleware";
+import { CommandResponseMiddleware, NotificationMiddleware } from "./middleware";
 import { ConversationReferenceStore } from "./store";
 import { TeamsBotInstallation } from "./context";
+import { TeamsFxCommandHandler } from "./commandHandler";
 
 export interface BotNotificationOptions {
     /**
@@ -18,12 +19,16 @@ export class BotNotification {
     private static conversationReferenceStore: ConversationReferenceStore;
     private static adapter: BotFrameworkAdapter;
 
-    public static Initialize(connector: BotFrameworkAdapter, options?: BotNotificationOptions) {
+    public static InitializeNotification(connector: BotFrameworkAdapter, options?: BotNotificationOptions) {
         const storage = options?.storage ?? new LocalFileStorage();
         BotNotification.conversationReferenceStore = new ConversationReferenceStore(storage, BotNotification.conversationReferenceStoreKey);
         BotNotification.adapter = connector.use(new NotificationMiddleware({
             conversationReferenceStore: BotNotification.conversationReferenceStore,
         }));
+    }
+
+    public static InitializeCommandResponse(connector: BotFrameworkAdapter, commandHandlers: TeamsFxCommandHandler[]) {
+        this.adapter = connector.use(new CommandResponseMiddleware(commandHandlers));
     }
 
     public static async installations(): Promise<TeamsBotInstallation[]> {

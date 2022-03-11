@@ -1,4 +1,6 @@
 import { Activity, Middleware, TurnContext } from "botbuilder";
+import { buildBotMessageWithCard } from "./adaptiveCard";
+import { TeamsFxCommandHandler } from "./commandHandler";
 import { ConversationReferenceStore } from "./store";
 
 export interface NotificationMiddlewareOptions {
@@ -7,6 +9,7 @@ export interface NotificationMiddlewareOptions {
 
 enum ActivityType {
     CurrentBotAdded,
+    CommandReceived,
     Unknown
 }
 
@@ -49,5 +52,72 @@ export class NotificationMiddleware implements Middleware {
         }
 
         return false;
+    }
+}
+
+export class CommandResponseMiddleware implements Middleware {
+    private readonly commandHandlers: TeamsFxCommandHandler[];
+
+    constructor(commandHandlers: TeamsFxCommandHandler[]) {
+        this.commandHandlers = commandHandlers;
+    }
+
+    public async onTurn(context: TurnContext, next: () => Promise<void>): Promise<void> {
+        const type = this.classifyActivity(context.activity);
+        let handlers: TeamsFxCommandHandler[] = [];
+        switch (type) {
+            case ActivityType.CommandReceived:
+                // Invoke corresponding command handler for the command response
+                const commandText = this.getActivityText(context.activity);
+
+                handlers = this.commandHandlers.filter(handler => {
+                    return handler.commandTextPattern?.test(commandText) || handler.commandName === commandText;             
+                });
+
+                if (handlers.length > 0) {
+                    const reply = await handlers[0].handleCommandReceived(context, commandText);
+                    if (typeof reply === 'string') {
+                        await context.sendActivity(reply);
+                    } else {
+                        const botMessage = buildBotMessageWithCard(reply);
+                        await context.sendActivity(botMessage);
+                    }                  
+                }
+                break;
+            default:
+                break;
+        }
+
+        await next();
+    }
+
+    private classifyActivity(activity: Activity): ActivityType {
+        if (this.isCommandReceived(activity)) {
+            return ActivityType.CommandReceived;
+        }
+
+        return ActivityType.Unknown;
+    }
+
+    private isCommandReceived(activity: Activity): boolean {
+        if (this.commandHandlers) {
+            let commandText = this.getActivityText(activity);
+            const handlers = this.commandHandlers.filter(handler => {
+                return handler.commandTextPattern?.test(commandText) || handler.commandName === commandText;             
+            });
+            return handlers.length > 0;
+        } else {
+            return false;
+        }
+    }
+
+    private getActivityText(activity: Activity): string {
+        let text = activity.text;
+        const removedMentionText = TurnContext.removeRecipientMention(activity);
+        if (removedMentionText) {
+            text = removedMentionText.toLowerCase().replace(/\n|\r\n/g, "").trim();
+        }
+
+        return text;
     }
 }
