@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { BotNotification } from "./sdk/notification";
-import { buildAdaptiveCard } from "./adaptiveCardBuider";
+import { buildAdaptiveCard } from "./sdk/adaptiveCard";
+import notificationTemplate from "./adaptiveCards/notification-default.json";;
 
 // HTTP trigger to send notification.
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -12,7 +13,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         description: "This is a sample http-triggered notification",
         notificationUrl: "https://www.adaptivecards.io/"
       }
-    }));
+    }, notificationTemplate));
   }
 
 

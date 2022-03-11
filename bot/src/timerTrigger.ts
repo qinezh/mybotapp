@@ -1,6 +1,7 @@
 import { AzureFunction, Context } from "@azure/functions";
-import { buildAdaptiveCard } from "./adaptiveCardBuider";
 import { BotNotification } from "./sdk/notification";
+import { buildAdaptiveCard } from "./sdk/adaptiveCard";
+import notificationTemplate from "./adaptiveCards/notification-default.json";
 
 // Time trigger to send notification. You can change the schedule in ../timerNotifyTrigger/function.json
 const timerTrigger: AzureFunction = async function (context: Context, myTimer: any): Promise<void> {
@@ -13,7 +14,7 @@ const timerTrigger: AzureFunction = async function (context: Context, myTimer: a
         description: `This is a sample time-triggered notification (${timeStamp}).`,
         notificationUrl: "https://www.adaptivecards.io/"
       }
-    }));
+    }, notificationTemplate));
   }
 };
 
