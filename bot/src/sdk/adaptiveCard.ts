@@ -4,22 +4,6 @@ import { AdaptiveCards } from "@microsoft/adaptivecards-tools";
 export type AdaptiveCard = any;
 
 /**
- * Adaptive card data model bound to the card template.
- */
-export interface NotificationCardData {
-  title: string,
-  appName: string,
-  description: string,
-  notificationUrl: string
-}
-
-export interface DemoCommandCardData {
-  firstName?: string,
-  lastName?: string,
-  age?: number
-}
-
-/**
  * Utility method to convert the message data to adaptive card for bot framework.
  * @param getCardData Function to prepare your card data.
  * @param cardTemplate The adaptive card template.
@@ -39,7 +23,7 @@ export function buildBotMessage<TData>(getCardData: () => TData, cardTemplate: a
 }
 
 /**
- * Utility method to build adaptive card without user data
+ * Utility method to build adaptive card bot message without user data
  */
  export function buildBotMessageWithCard(card: any): Partial<Activity> {
   // Wrap the message in adaptive card
@@ -52,10 +36,21 @@ export function buildBotMessage<TData>(getCardData: () => TData, cardTemplate: a
   };
 }
 
+/**
+ * Build adaptive card payload with card template and data.
+ * @param getCardData Function to prepare your card data.
+ * @param cardTemplate The adaptive card template.
+ * @returns An adaptive card object.
+ */
 export function buildAdaptiveCard<TData>(getCardData: () => TData, cardTemplate: any): Partial<Activity> {
   return AdaptiveCards.declare<TData>(cardTemplate).render(getCardData())
 }
 
+/**
+ * Build adaptive card payload with card template and data.
+ * @param card The adaptive card JSON.
+ * @returns An adaptive card object.
+ */
 export function buildAdaptiveCardWithoutData(card: any): Partial<Activity> {
   return AdaptiveCards.declareWithoutData(card).render();
 }
