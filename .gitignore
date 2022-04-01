@@ -1,10 +1,15 @@
+# TeamsFx files
 node_modules
 .fx/configs/localSettings.json
 .fx/states/*.userdata
 .DS_Store
-.archive
-.archive.log
 .env.teamsfx.local
 subscriptionInfo.json
 build
-.teamsfx.bot.json
+.fx/configs/config.local.json
+.fx/states/state.local.json
+../../Users/xiaofhua/AppData/Local/Programs/Microsoft VS Code/.fx/configs/config.local.json
+../../Users/xiaofhua/AppData/Local/Programs/Microsoft VS Code/.fx/states/state.local.json
+../../Users/xiaofhua/AppData/Local/Programs/Microsoft VS Code/.backup
+package-lock.json
+~$*
